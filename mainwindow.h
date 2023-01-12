@@ -17,6 +17,12 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    void administratorInterface();
+    void closeButtonConfiguration();
+    void settingsButtonConfiguration();
+    int database();
+public slots:
+    void settings();
 };
 
 #endif // MAINWINDOW_H

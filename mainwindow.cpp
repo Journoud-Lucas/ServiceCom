@@ -3,18 +3,21 @@
 #include <QMainWindow>
 #include <QtSql>
 #include <iostream>
+#include <QUiLoader>
 
-int database();
-
+void settings();
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    //Code a écrire ici
+    this->showFullScreen();
+    /*
+     Code a écrire ici
+    */
     database();
-
+    closeButtonConfiguration();
+    settingsButtonConfiguration();
 
 
 }
@@ -24,7 +27,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-int database()
+int MainWindow::database()
 {
 
     // Création de la connexion à la base de données
@@ -52,4 +55,42 @@ int database()
         // Fermeture de la connexion
         db.close();
         return 0;
+}
+
+void MainWindow::closeButtonConfiguration()
+{
+    //bouton fermer
+    ui->pushButtonClose_9->setIcon(QIcon(QPixmap(":/images/close.png")));
+    ui->pushButtonClose_9->setFlat(true);
+    QObject::connect(ui->pushButtonClose_9, &QPushButton::clicked, &QApplication::quit);
+}
+
+void MainWindow::settingsButtonConfiguration()
+{
+    ui->pushButtonSettings_9->setIcon(QIcon(QPixmap(":/images/settings.png")));
+    ui->pushButtonSettings_9->setFlat(true);
+    QObject::connect(ui->pushButtonSettings_9, &QPushButton::clicked, this, &MainWindow::settings);
+}
+
+void MainWindow::settings()
+{
+
+    administratorInterface();
+}
+
+void MainWindow::administratorInterface()
+{
+    QUiLoader loader;
+    QFile file("administratorinterface.ui");
+    file.open(QFile::ReadOnly);
+    QWidget* new_ui = loader.load(&file);
+    file.close();
+    //Utilisez la méthode setCentralWidget() de la fenêtre principale pour remplacer l'interface utilisateur actuelle par la nouvelle :
+    QMainWindow* main_window = this; //this est l'objet de la fenêtre principale
+    main_window->setCentralWidget(new_ui);
+    //Utilisez la méthode hide() pour cacher l'interface utilisateur actuelle :
+    QWidget* current_ui = main_window->centralWidget();
+    current_ui->hide();
+    //Utilisez la méthode show() pour afficher la nouvelle interface utilisateur:
+    new_ui->show();
 }

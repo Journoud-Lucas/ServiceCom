@@ -5,7 +5,11 @@
 #-------------------------------------------------
 
 QT       += core gui
+QT += uitools
 QT += sql
+RESOURCES += ressource.qrc \
+    ressource.qrc
+
 
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
