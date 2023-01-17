@@ -3,4 +3,9 @@
         <file>close.png</file>
 	<file>settings.png</file>
     </qresource>
+    <qresource prefix="/ui">
+        <file>administratorinterface.ui</file>
+	<file>mainwindow.ui</file>
+	<file>clogindlg.ui</file>
+    </qresource>
 </RCC>

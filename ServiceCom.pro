@@ -4,6 +4,7 @@
 #
 #-------------------------------------------------
 
+QT += widgets
 QT       += core gui
 QT += uitools
 QT += sql
@@ -40,8 +41,8 @@ HEADERS += \
         mainwindow.h
 
 FORMS += \
-    administratorinterface.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    administratorinterface.ui
 
 CONFIG += mobility
 MOBILITY = 

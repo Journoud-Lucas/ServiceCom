@@ -4,6 +4,13 @@
 #include <QtSql>
 #include <iostream>
 #include <QUiLoader>
+#include <QApplication>
+#include <QPushButton>
+#include <QUiLoader>
+#include <QFile>
+#include <QFileDialog>
+#include <QLineEdit>
+#include <QMessageBox>
 
 void settings();
 MainWindow::MainWindow(QWidget *parent) :
@@ -74,14 +81,51 @@ void MainWindow::settingsButtonConfiguration()
 
 void MainWindow::settings()
 {
+    //Hashache et salage (salage geénérer aléatoirement) du mot de passe
+    QRandomGenerator generator;
+    QString password = "arhm";
+    quint32 saltValue = generator.generate();
+    unsigned int saltUInt = static_cast<unsigned int>(saltValue);
+    char salt = static_cast<char>(saltUInt);
+    QByteArray passwordBytes = (password+salt).toUtf8();
+    QByteArray hashedPassword = QCryptographicHash::hash(passwordBytes, QCryptographicHash::Sha256);
 
-    administratorInterface();
+
+    QUiLoader loader;
+    QFile file(":/ui/clogindlg.ui");
+    file.open(QFile::ReadOnly);
+    QDialog *dialog = qobject_cast<QDialog*>(loader.load(&file, this));
+    file.close();
+
+    QPushButton *okButton = dialog->findChild<QPushButton*>("pushButtonValiderMdp");
+    QLineEdit *lineEdit=dialog->findChild<QLineEdit*>("lineEditMdp");
+
+    dialog->connect(okButton, &QPushButton::clicked, [&](){
+
+        //Hashage du text
+        QString enterText = lineEdit->text();
+        QByteArray enterTextBytes = (enterText+salt).toUtf8();
+        QByteArray hashedText = QCryptographicHash::hash(enterTextBytes, QCryptographicHash::Sha256);
+
+
+        if(hashedText==hashedPassword) { //mot de passe correct
+            dialog->accept();
+            administratorInterface();
+        } else { //mot de passe incorrect
+            QMessageBox::critical(this, tr("Erreur"), tr("Le mot de passe entré est incorect.\nVeuillez réessayez"));
+        }
+});
+    dialog->exec();
+
+
+    //code pour le mot de passe
 }
+
 
 void MainWindow::administratorInterface()
 {
     QUiLoader loader;
-    QFile file("administratorinterface.ui");
+    QFile file(":/ui/administratorinterface.ui");
     file.open(QFile::ReadOnly);
     QWidget* new_ui = loader.load(&file);
     file.close();
