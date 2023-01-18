@@ -12,7 +12,7 @@
 #include <QLineEdit>
 #include <QMessageBox>
 
-void settings();
+QByteArray HashingAndSalling(QString textToHash, quint32 saltValue);
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -22,9 +22,10 @@ MainWindow::MainWindow(QWidget *parent) :
     /*
      Code a écrire ici
     */
-    database();
-    closeButtonConfiguration();
-    settingsButtonConfiguration();
+    InitialConfiguration();
+    Database();
+    CloseButtonConfiguration();
+    SettingsButtonConfiguration();
 
 
 }
@@ -34,37 +35,54 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-int MainWindow::database()
+int MainWindow::Database()
 {
 
     // Création de la connexion à la base de données
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-        db.setDatabaseName("D:\\journoudl.SNIRW\\ServiceCom\\ServiceCOM-2023\\BDD_ServiceCom.db");
+        QString databasePath = "D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+        db.setDatabaseName(databasePath);
         if (!db.open()) {
-            std::cout << "Erreur lors de l'ouverture de la base de données : " << db.lastError().text().toStdString() << std::endl;
+            qDebug() << "Erreur lors de l'ouverture de la base de données : " << db.lastError().text() << '\n';
             return 1;
         }
 
         // Exécution de la requête
-        QSqlQuery query("SELECT * FROM titem");
-        if(!query.exec()){
-            std::cout << "Erreur lors de l'execution de la requête : " << query.lastError().text().toStdString() << std::endl;
-            db.close();
-            return 1;
-        }
+        for(int i=1;i<5;i++)
+        {
+            QSqlQuery queryService("SELECT * FROM tservice WHERE IdService = "+QString::number(i));
+            if(!queryService.exec()){
+                qDebug() << "Erreur lors de l'execution de la requête : " << queryService.lastError().text() << '\n';
+                db.close();
+                return 1;
+            }
 
-        // Affichage des résultats
-        while (query.next()) {
-            qDebug()<<"colonne1 : "<< query.value(0).toString() << ", colonne2 : " << query.value(1).toString() <<'\n';
-            //std::cout << "colonne1 : " << query.value(0).toString().toStdString() << ", colonne2 : " << query.value(1).toString().toStdString() << std::endl;
-        }
+            // Affichage des résultats
+            while (queryService.next()) {
+                qDebug()<<"Sevice : "<< queryService.value(0).toString() << ", colonne2 : " << queryService.value(1).toString();
+            }
 
+            QSqlQuery query("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(i));
+            if(!query.exec()){
+                qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+                db.close();
+                return 1;
+            }
+
+            // Affichage des résultats
+            while (query.next()) {
+                qDebug()<<"colonne1 : "<< query.value(0).toString() << ", colonne2 : " << query.value(1).toString()
+                       << ", colonne3 : " << query.value(2).toString() << ", colonne4 : " << query.value(3).toString()
+                       << ", colonne5 : " << query.value(4).toString() << ", colonne5 : " << query.value(5).toString();
+            }
+
+        }
         // Fermeture de la connexion
         db.close();
         return 0;
 }
 
-void MainWindow::closeButtonConfiguration()
+void MainWindow::CloseButtonConfiguration()
 {
     //bouton fermer
     ui->pushButtonClose_9->setIcon(QIcon(QPixmap(":/images/close.png")));
@@ -72,23 +90,19 @@ void MainWindow::closeButtonConfiguration()
     QObject::connect(ui->pushButtonClose_9, &QPushButton::clicked, &QApplication::quit);
 }
 
-void MainWindow::settingsButtonConfiguration()
+void MainWindow::SettingsButtonConfiguration()
 {
     ui->pushButtonSettings_9->setIcon(QIcon(QPixmap(":/images/settings.png")));
     ui->pushButtonSettings_9->setFlat(true);
-    QObject::connect(ui->pushButtonSettings_9, &QPushButton::clicked, this, &MainWindow::settings);
+    QObject::connect(ui->pushButtonSettings_9, &QPushButton::clicked, this, &MainWindow::Settings);
 }
 
-void MainWindow::settings()
+void MainWindow::Settings()
 {
-    //Hashache et salage (salage geénérer aléatoirement) du mot de passe
+    //Hashache et salage (salage générer aléatoirement) du mot de passe
     QRandomGenerator generator;
-    QString password = "arhm";
     quint32 saltValue = generator.generate();
-    unsigned int saltUInt = static_cast<unsigned int>(saltValue);
-    char salt = static_cast<char>(saltUInt);
-    QByteArray passwordBytes = (password+salt).toUtf8();
-    QByteArray hashedPassword = QCryptographicHash::hash(passwordBytes, QCryptographicHash::Sha256);
+    QByteArray hashedPassword = HashingAndSalling("arhm", saltValue);
 
 
     QUiLoader loader;
@@ -100,18 +114,16 @@ void MainWindow::settings()
     QPushButton *okButton = dialog->findChild<QPushButton*>("pushButtonValiderMdp");
     QLineEdit *lineEdit=dialog->findChild<QLineEdit*>("lineEditMdp");
 
-    dialog->connect(okButton, &QPushButton::clicked, [&](){
-
+    dialog->connect(okButton, &QPushButton::clicked, [&](){ //When validation button was pressed
         //Hashage du text
         QString enterText = lineEdit->text();
-        QByteArray enterTextBytes = (enterText+salt).toUtf8();
-        QByteArray hashedText = QCryptographicHash::hash(enterTextBytes, QCryptographicHash::Sha256);
+        QByteArray hashedEnterText = HashingAndSalling(enterText, saltValue);
 
 
-        if(hashedText==hashedPassword) { //mot de passe correct
+        if(hashedEnterText==hashedPassword) { //Corect password
             dialog->accept();
-            administratorInterface();
-        } else { //mot de passe incorrect
+            AdministratorInterface();
+        } else { //Incorrect Password
             QMessageBox::critical(this, tr("Erreur"), tr("Le mot de passe entré est incorect.\nVeuillez réessayez"));
         }
 });
@@ -121,8 +133,16 @@ void MainWindow::settings()
     //code pour le mot de passe
 }
 
+QByteArray HashingAndSalling(QString textToHash, quint32 saltValue)
+{
+    unsigned int saltUInt = static_cast<unsigned int>(saltValue);
+    char salt = static_cast<char>(saltUInt);
+    QByteArray passwordBytes = (textToHash+salt).toUtf8();
+    QByteArray hashedPassword = QCryptographicHash::hash(passwordBytes, QCryptographicHash::Sha256);
+    return hashedPassword;
+}
 
-void MainWindow::administratorInterface()
+void MainWindow::AdministratorInterface()
 {
     QUiLoader loader;
     QFile file(":/ui/administratorinterface.ui");
@@ -137,4 +157,10 @@ void MainWindow::administratorInterface()
     current_ui->hide();
     //Utilisez la méthode show() pour afficher la nouvelle interface utilisateur:
     new_ui->show();
+}
+
+void MainWindow::InitialConfiguration()
+{
+    ui->pushButtonStart->setText("Lancer");
+    ui->pushButtonStart->setStyleSheet("QPushButton {background-color: #92d04f; color: white;}");
 }

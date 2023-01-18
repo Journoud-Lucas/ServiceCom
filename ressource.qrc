@@ -8,4 +8,7 @@
 	<file>mainwindow.ui</file>
 	<file>clogindlg.ui</file>
     </qresource>
+    <qresource prefix="/BDD">
+	<file>BDD_ServiceCom.db</file>
+    </qresource>
 </RCC>
