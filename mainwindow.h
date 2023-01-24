@@ -22,8 +22,10 @@ private:
     void SettingsButtonConfiguration();
     int Database();
     void InitialConfiguration();
+
 public slots:
     void Settings();
+
 };
 
 #endif // MAINWINDOW_H

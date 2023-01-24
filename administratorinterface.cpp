@@ -6,9 +6,19 @@ AdministratorInterface::AdministratorInterface(QWidget *parent) :
     ui(new Ui::AdministratorInterface)
 {
     ui->setupUi(this);
+    ResetButtonAdmin();
 }
+
+
+
 
 AdministratorInterface::~AdministratorInterface()
 {
     delete ui;
 }
+
+void AdministratorInterface::ResetButtonAdmin()
+{
+    ui->ButtonReset->setStyleSheet("QPushButton {background-color: red;}");
+}
+

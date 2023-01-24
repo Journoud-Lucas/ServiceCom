@@ -17,6 +17,7 @@ public:
 
 private:
     Ui::AdministratorInterface *ui;
+    void ResetButtonAdmin();
 };
 
 #endif // ADMINISTRATORINTERFACE_H

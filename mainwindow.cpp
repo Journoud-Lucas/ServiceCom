@@ -27,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent) :
     CloseButtonConfiguration();
     SettingsButtonConfiguration();
 
-
 }
 
 MainWindow::~MainWindow()
@@ -164,3 +163,5 @@ void MainWindow::InitialConfiguration()
     ui->pushButtonStart->setText("Lancer");
     ui->pushButtonStart->setStyleSheet("QPushButton {background-color: #92d04f; color: white;}");
 }
+
+

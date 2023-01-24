@@ -550,6 +550,13 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QPushButton" name="ButtonReset">
+                  <property name="text">
+                   <string>Rénitialiser</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <spacer name="verticalSpacer_2">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
@@ -1019,18 +1026,6 @@
                  </size>
                 </property>
                </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="ButtonUsine">
-                <property name="font">
-                 <font>
-                  <pointsize>28</pointsize>
-                 </font>
-                </property>
-                <property name="text">
-                 <string>Réinitialiser</string>
-                </property>
-               </widget>
               </item>
               <item>
                <spacer name="horizontalSpacer_16">
