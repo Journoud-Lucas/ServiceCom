@@ -1,14 +1,9 @@
 <RCC>
     <qresource prefix="/images">
         <file>close.png</file>
-	<file>settings.png</file>
-    </qresource>
-    <qresource prefix="/ui">
-        <file>administratorinterface.ui</file>
-	<file>mainwindow.ui</file>
-	<file>clogindlg.ui</file>
+        <file>settings.png</file>
     </qresource>
     <qresource prefix="/BDD">
-	<file>BDD_ServiceCom.db</file>
+        <file>BDD_ServiceCom.db</file>
     </qresource>
 </RCC>

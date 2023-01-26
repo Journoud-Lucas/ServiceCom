@@ -1,0 +1,4 @@
+#Thu Jan 26 17:32:51 CET 2023
+base.0=D\:\\journoudl.SNIRW\\ServiceCom\\ServiceCOM-2023\\Build\\Android\\android-build\\build\\intermediates\\transforms\\dexMerger\\debug\\0
+path.0=classes.dex
+renamed.0=classes.dex

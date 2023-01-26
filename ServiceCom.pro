@@ -6,10 +6,8 @@
 
 QT += widgets
 QT       += core gui
-QT += uitools
 QT += sql
-RESOURCES += ressource.qrc \
-    ressource.qrc
+RESOURCES += ressource.qrc
 
 
 

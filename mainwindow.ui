@@ -34,7 +34,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>14</pointsize>
+              <pointsize>25</pointsize>
               <weight>75</weight>
               <bold>true</bold>
              </font>
@@ -54,7 +54,7 @@
             </property>
             <property name="sizeHint" stdset="0">
              <size>
-              <width>40</width>
+              <width>300</width>
               <height>20</height>
              </size>
             </property>
@@ -70,7 +70,7 @@
             </property>
             <property name="font">
              <font>
-              <pointsize>14</pointsize>
+              <pointsize>25</pointsize>
               <weight>75</weight>
               <bold>true</bold>
              </font>
@@ -118,8 +118,8 @@
              <widget class="QPushButton" name="pushButtonSettings_9">
               <property name="minimumSize">
                <size>
-                <width>41</width>
-                <height>41</height>
+                <width>75</width>
+                <height>75</height>
                </size>
               </property>
               <property name="text">
@@ -137,8 +137,8 @@
              <widget class="QPushButton" name="pushButtonClose_9">
               <property name="minimumSize">
                <size>
-                <width>41</width>
-                <height>41</height>
+                <width>75</width>
+                <height>75</height>
                </size>
               </property>
               <property name="text">
@@ -166,8 +166,8 @@
            <widget class="QComboBox" name="comboBoxChoixService_9">
             <property name="minimumSize">
              <size>
-              <width>241</width>
-              <height>41</height>
+              <width>290</width>
+              <height>55</height>
              </size>
             </property>
             <property name="font">

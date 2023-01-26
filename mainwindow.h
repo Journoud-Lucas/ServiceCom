@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "administratorinterface.h"
 
 namespace Ui {
 class MainWindow;
@@ -14,10 +15,11 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    AdministratorInterface* administratorInterface;
 
 private:
     Ui::MainWindow *ui;
-    void AdministratorInterface();
+    void ShowAdministratorInterface();
     void CloseButtonConfiguration();
     void SettingsButtonConfiguration();
     int Database();
