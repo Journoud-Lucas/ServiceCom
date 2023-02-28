@@ -1,15 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "administratorinterface.h"
-#include <QMainWindow>
-#include <QtSql>
-#include <iostream>
-#include <QApplication>
-#include <QPushButton>
-#include <QFile>
-#include <QFileDialog>
-#include <QLineEdit>
-#include <QMessageBox>
+
+
 
 QByteArray HashingAndSalling(QString textToHash, quint32 saltValue);
 MainWindow::MainWindow(QWidget *parent) :
@@ -19,13 +12,8 @@ MainWindow::MainWindow(QWidget *parent) :
     administratorInterface=new AdministratorInterface;
     ui->setupUi(this);
     this->showFullScreen();
-    /*
-     Code a écrire ici
-    */
     InitialConfiguration();
-    Database();
-    CloseButtonConfiguration();
-    SettingsButtonConfiguration();
+    initialConfigurationDone=true;
 }
 
 MainWindow::~MainWindow()
@@ -33,15 +21,29 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::TableView()
+{
+    model = new QStandardItemModel();
+    // Assigner le modèle à la vue
+    ui->tableView->setModel(model);
+    // Définir le nombre de colonnes et de lignes
+    model->setColumnCount(3);
+    ui->tableView->setShowGrid(false);
+    ui->tableView->setColumnWidth(0, 300);
+    model->setHeaderData(0, Qt::Horizontal, "Service en cours");
+    model->setHeaderData(1, Qt::Horizontal, "");
+    model->setHeaderData(2, Qt::Horizontal, "Temps restant");
+}
+
 int MainWindow::Database()
 {
-
+    ui->comboBoxChoixService_9->clear();
     // Création de la connexion à la base de données
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
         QString databasePath = "D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
         db.setDatabaseName(databasePath);
         if (!db.open()) {
-            qDebug() << "Erreur lors de l'ouverture de la base de données : " << db.lastError().text() << '\n';
+            qDebug() << "Erreur lors de l'ouverture de la base de données (databse initial) : " << db.lastError().text() << '\n';
             return 1;
         }
 
@@ -57,23 +59,10 @@ int MainWindow::Database()
 
             // Affichage des résultats
             while (queryService.next()) {
-                qDebug()<<"Sevice : "<< queryService.value(0).toString() << ", colonne2 : " << queryService.value(1).toString();
-            }
+                qDebug()<<"Service : "<< queryService.value(0).toString() << ", colonne2 : " << queryService.value(1).toString();
+                ui->comboBoxChoixService_9->addItem(queryService.value(1).toString());
 
-            QSqlQuery query("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(i));
-            if(!query.exec()){
-                qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
-                db.close();
-                return 1;
             }
-
-            // Affichage des résultats
-            while (query.next()) {
-                qDebug()<<"colonne1 : "<< query.value(0).toString() << ", colonne2 : " << query.value(1).toString()
-                       << ", colonne3 : " << query.value(2).toString() << ", colonne4 : " << query.value(3).toString()
-                       << ", colonne5 : " << query.value(4).toString() << ", colonne5 : " << query.value(5).toString();
-            }
-
         }
         // Fermeture de la connexion
         db.close();
@@ -133,9 +122,6 @@ void MainWindow::Settings()
         }
 });
     dialog->exec();
-
-
-    //code pour le mot de passe
 }
 
 QByteArray HashingAndSalling(QString textToHash, quint32 saltValue)
@@ -156,6 +142,75 @@ void MainWindow::InitialConfiguration()
 {
     ui->pushButtonStart->setText("Lancer");
     ui->pushButtonStart->setStyleSheet("QPushButton {background-color: #92d04f; color: white;}");
+    CloseButtonConfiguration();
+    SettingsButtonConfiguration();
+    TableView();
+    Database();
+    m_engine= new QTextToSpeech;
+    m_engine->say(model->data(model->index(0, 0)).toString());
+
+    UpdateService(1);
 }
 
 
+
+int MainWindow::on_comboBoxChoixService_9_currentIndexChanged(int index)
+{
+    if(initialConfigurationIsDone())
+    {
+        UpdateService(index+1);
+    }
+return 0;
+}
+
+
+int MainWindow::UpdateService(int indexNombre)
+{
+    model->setRowCount(0);
+
+
+    QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
+    QString databasePath = "D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+    db.setDatabaseName(databasePath);
+
+    if (!db.open()) {
+        qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
+        return 1;
+    }
+            QSqlQuery query("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(indexNombre));
+            if(!query.exec()){
+                qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+                db.close();
+                return 1;
+            }
+
+
+            // Affichage des résultats
+            while (query.next()) {
+                model->setRowCount(model->rowCount()+1);
+                model->setData(model->index(query.value(4).toInt()-1, 0), query.value(1).toString(), Qt::EditRole);
+                model->setData(model->index(query.value(4).toInt()-1, 2), query.value(2).toString()+"min "+ query.value(3).toString() + "sec", Qt::EditRole);
+            }
+
+        // Fermeture de la connexion
+
+        db.close();
+        return 0;
+}
+
+bool MainWindow::initialConfigurationIsDone()
+{
+    return initialConfigurationDone;
+}
+
+void MainWindow::StartSequence()
+{
+    ui->pushButtonStart->setStyleSheet("QPushButton {background-color: orange; color: white;}");
+    ui->pushButtonStart->setText("Continuer");
+
+}
+
+void MainWindow::on_pushButtonStart_clicked()
+{
+        StartSequence();
+}

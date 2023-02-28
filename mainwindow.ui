@@ -25,26 +25,6 @@
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_74">
           <item>
-           <widget class="QLabel" name="labelChoixService_9">
-            <property name="minimumSize">
-             <size>
-              <width>241</width>
-              <height>21</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>25</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Choix du service :</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <spacer name="horizontalSpacer_57">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -162,6 +142,26 @@
        <layout class="QHBoxLayout" name="horizontalLayout_76" stretch="0,1">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_34">
+          <item>
+           <widget class="QLabel" name="labelChoixService_9">
+            <property name="minimumSize">
+             <size>
+              <width>241</width>
+              <height>21</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>25</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Choix du service</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QComboBox" name="comboBoxChoixService_9">
             <property name="minimumSize">

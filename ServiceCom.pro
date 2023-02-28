@@ -7,6 +7,7 @@
 QT += widgets
 QT       += core gui
 QT += sql
+QT += texttospeech
 RESOURCES += ressource.qrc
 
 
