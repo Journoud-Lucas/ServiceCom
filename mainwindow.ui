@@ -213,10 +213,16 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_36">
             <item>
-             <widget class="QTableView" name="tableView">
+             <widget class="QTableWidget" name="tableWidgetServices">
               <property name="styleSheet">
-               <string notr="true">border : 2px solid black</string>
+               <string notr="true">border : 5px solid #92d04f;</string>
               </property>
+              <attribute name="horizontalHeaderVisible">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="verticalHeaderVisible">
+               <bool>false</bool>
+              </attribute>
              </widget>
             </item>
            </layout>

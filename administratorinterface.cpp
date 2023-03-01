@@ -11,6 +11,24 @@ AdministratorInterface::AdministratorInterface(QWidget *parent) :
     ComboInit();
     initialConfigurationDone=true;
     UpdateService(1);
+
+
+
+    ui->tableWidgetServicesAdmin->setColumnCount(4);
+    ui->tableWidgetServicesAdmin->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+    // set background and text color
+    ui->tableWidgetServicesAdmin->setShowGrid(false);
+    ui->tableWidgetServicesAdmin->setColumnWidth(0, 618);
+    ui->tableWidgetServicesAdmin->setColumnWidth(1, 125);
+
+
+    // Créer un nouvel élément et régler sa hauteur
+    QTableWidgetItem *headerItem = new QTableWidgetItem("Nom item");
+    headerItem->setSizeHint(QSize(0, 40));
+
+    // Régler l'élément comme horizontal header
+    ui->tableWidgetServicesAdmin->setHorizontalHeaderItem(0, headerItem);
 }
 
 AdministratorInterface::~AdministratorInterface()
@@ -58,7 +76,7 @@ int AdministratorInterface::ComboInit()
 }
 int AdministratorInterface::UpdateService(int indexNombre)
 {
-    ui->tableItem->setRowCount(0);
+    ui->tableWidgetServicesAdmin->setRowCount(0);
 
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
     QString databasePath = "D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
@@ -79,11 +97,11 @@ int AdministratorInterface::UpdateService(int indexNombre)
             // Affichage des résultats
             while (query.next()) {
                 //model->setRowCount(model->rowCount()+1);
-                ui->tableItem->setRowCount(ui->tableItem->rowCount()+1);
-                ui->tableItem->setItem(query.value(4).toInt()-1,0,new QTableWidgetItem(query.value(1).toString()));
-                ui->tableItem->setItem(query.value(4).toInt()-1, 1, new QTableWidgetItem(query.value(2).toString()+"min "));
-                ui->tableItem->setItem(query.value(4).toInt()-1, 2, new QTableWidgetItem(query.value(3).toString() + "sec"));
-                ui->tableItem->setItem(query.value(4).toInt()-1, 3, new QTableWidgetItem(query.value(4).toString()));
+                ui->tableWidgetServicesAdmin->setRowCount(ui->tableWidgetServicesAdmin->rowCount()+1);
+                ui->tableWidgetServicesAdmin->setItem(query.value(4).toInt()-1,0,new QTableWidgetItem(query.value(1).toString()));
+                ui->tableWidgetServicesAdmin->setItem(query.value(4).toInt()-1, 1, new QTableWidgetItem(query.value(2).toString()+"min "));
+                ui->tableWidgetServicesAdmin->setItem(query.value(4).toInt()-1, 2, new QTableWidgetItem(query.value(3).toString() + "sec"));
+                ui->tableWidgetServicesAdmin->setItem(query.value(4).toInt()-1, 3, new QTableWidgetItem(query.value(4).toString()));
             }
 
         // Fermeture de la connexion

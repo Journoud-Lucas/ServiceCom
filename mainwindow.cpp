@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    initialConfigurationDone=false;
     administratorInterface=new AdministratorInterface;
     ui->setupUi(this);
     this->showFullScreen();
@@ -23,16 +24,16 @@ MainWindow::~MainWindow()
 
 void MainWindow::TableView()
 {
-    model = new QStandardItemModel();
-    // Assigner le modèle à la vue
-    ui->tableView->setModel(model);
-    // Définir le nombre de colonnes et de lignes
-    model->setColumnCount(3);
-    ui->tableView->setShowGrid(false);
-    ui->tableView->setColumnWidth(0, 300);
-    model->setHeaderData(0, Qt::Horizontal, "Service en cours");
-    model->setHeaderData(1, Qt::Horizontal, "");
-    model->setHeaderData(2, Qt::Horizontal, "Temps restant");
+
+         ui->tableWidgetServices->setColumnCount(2);
+         ui->tableWidgetServices->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+         // set background and text color
+         ui->tableWidgetServices->setShowGrid(false);
+         ui->tableWidgetServices->setColumnWidth(0, 618);
+         ui->tableWidgetServices->setColumnWidth(1, 125);
+         ui->tableWidgetServices->setColumnWidth(2, 375);
+
 }
 
 int MainWindow::Database()
@@ -146,8 +147,8 @@ void MainWindow::InitialConfiguration()
     SettingsButtonConfiguration();
     TableView();
     Database();
-    m_engine= new QTextToSpeech;
-    m_engine->say(model->data(model->index(0, 0)).toString());
+    //m_engine= new QTextToSpeech;
+    //m_engine->say(model->data(model->index(0, 0)).toString());
 
     UpdateService(1);
 }
@@ -166,7 +167,7 @@ return 0;
 
 int MainWindow::UpdateService(int indexNombre)
 {
-    model->setRowCount(0);
+    ui->tableWidgetServices->setRowCount(0);
 
 
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
@@ -187,9 +188,11 @@ int MainWindow::UpdateService(int indexNombre)
 
             // Affichage des résultats
             while (query.next()) {
-                model->setRowCount(model->rowCount()+1);
-                model->setData(model->index(query.value(4).toInt()-1, 0), query.value(1).toString(), Qt::EditRole);
-                model->setData(model->index(query.value(4).toInt()-1, 2), query.value(2).toString()+"min "+ query.value(3).toString() + "sec", Qt::EditRole);
+                ui->tableWidgetServices->setRowCount(ui->tableWidgetServices->rowCount()+1);
+                ui->tableWidgetServices->setItem(query.value(4).toInt()-1,0,new QTableWidgetItem(query.value(1).toString()));
+
+
+                ui->tableWidgetServices->setItem(query.value(4).toInt()-1,1,new QTableWidgetItem(query.value(2).toString()+"min "+ query.value(3).toString() + "sec"));
             }
 
         // Fermeture de la connexion
@@ -207,7 +210,16 @@ void MainWindow::StartSequence()
 {
     ui->pushButtonStart->setStyleSheet("QPushButton {background-color: orange; color: white;}");
     ui->pushButtonStart->setText("Continuer");
+    ColorRow(0);
+}
 
+void MainWindow::ColorRow(int row)
+{
+    for(int i=0;i<ui->tableWidgetServices->columnCount();i++)
+    {
+        QTableWidgetItem *item = ui->tableWidgetServices->item(row, i);
+        item->setBackground(QBrush(QColor(255, 165, 0)));
+    }
 }
 
 void MainWindow::on_pushButtonStart_clicked()

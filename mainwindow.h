@@ -35,13 +35,12 @@ public:
     bool initialConfigurationIsDone();
     void StartSequence();
     void TableView();
+    void ColorRow(int row);
 
 private:
     Ui::MainWindow *ui;
     QTextToSpeech *m_engine;
     QSqlDatabase *m_db;
-
-    QStandardItemModel *model;
     bool initialConfigurationDone;
 
 
