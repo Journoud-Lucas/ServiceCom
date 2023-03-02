@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "administratorinterface.h"
 
+using namespace std;
 
 
 QByteArray HashingAndSalling(QString textToHash, quint32 saltValue);
@@ -147,8 +148,7 @@ void MainWindow::InitialConfiguration()
     SettingsButtonConfiguration();
     TableView();
     Database();
-    //m_engine= new QTextToSpeech;
-    //m_engine->say(model->data(model->index(0, 0)).toString());
+    m_engine= new QTextToSpeech;
 
     UpdateService(1);
 }
@@ -208,9 +208,58 @@ bool MainWindow::initialConfigurationIsDone()
 
 void MainWindow::StartSequence()
 {
+    m_sequence=0;
     ui->pushButtonStart->setStyleSheet("QPushButton {background-color: orange; color: white;}");
     ui->pushButtonStart->setText("Continuer");
-    ColorRow(0);
+    // Timer pour le décompte
+    m_timerNextSequence = new QTimer();
+
+    m_timerNextSequence->connect(m_timerNextSequence, &QTimer::timeout, this, &MainWindow::ReadServices);
+
+
+    // Définir le timer pour exécuter la fonction toutes les 60 secondes
+    m_timerNextSequence->start(0);
+
+}
+
+void MainWindow::ReadServices()
+{
+    if(m_sequence<=ui->tableWidgetServices->rowCount()-1)
+    {
+        ColorRow(m_sequence);
+        m_engine->say(ui->tableWidgetServices->item(m_sequence,0)->text());
+
+/*
+        int seconds;
+
+
+
+  std::regex min_pattern("\\d+(?=min)");
+  std::smatch min_results;
+  std::regex_search(str1, min_results, min_pattern);
+  int min1 = std::stoi(min_results[0]);
+  std::regex_search(str2, min_results, min_pattern);
+  int min2 = std::stoi(min_results[0]);
+
+  std::regex sec_pattern("\\d+(?=sec)");
+  std::smatch sec_results;
+  std::regex_search(str1, sec_results, sec_pattern);
+  int sec1 = std::stoi(sec_results[0]);
+  std::regex_search(str2, sec_results, sec_pattern);
+  int sec2 = std::stoi(sec_results[0]);
+
+        */
+
+
+     //a convertir les min et sec du string en ms   //m_timerNextSequence->setInterval(ui->tableWidgetServices->item(m_sequence,1)->text().toInt());
+        m_timerNextSequence->setInterval(5000);
+
+        m_sequence++;
+    }
+    else
+    {
+        m_timerNextSequence->stop();
+    }
 }
 
 void MainWindow::ColorRow(int row)

@@ -96,7 +96,6 @@ int AdministratorInterface::UpdateService(int indexNombre)
 
             // Affichage des résultats
             while (query.next()) {
-                //model->setRowCount(model->rowCount()+1);
                 ui->tableWidgetServicesAdmin->setRowCount(ui->tableWidgetServicesAdmin->rowCount()+1);
                 ui->tableWidgetServicesAdmin->setItem(query.value(4).toInt()-1,0,new QTableWidgetItem(query.value(1).toString()));
                 ui->tableWidgetServicesAdmin->setItem(query.value(4).toInt()-1, 1, new QTableWidgetItem(query.value(2).toString()+"min "));
@@ -105,7 +104,6 @@ int AdministratorInterface::UpdateService(int indexNombre)
             }
 
         // Fermeture de la connexion
-
         db.close();
         return 0;
 }

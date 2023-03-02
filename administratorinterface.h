@@ -35,7 +35,6 @@ private:
     int UpdateService(int indexNombre);
     bool initialConfigurationDone;
     bool initialConfigurationIsDone();
-
 };
 
 #endif // ADMINISTRATORINTERFACE_H

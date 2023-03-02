@@ -42,7 +42,8 @@ private:
     QTextToSpeech *m_engine;
     QSqlDatabase *m_db;
     bool initialConfigurationDone;
-
+    int m_sequence;
+    QTimer *m_timerNextSequence;
 
 public slots:
     void Settings();
@@ -50,6 +51,8 @@ public slots:
 private slots:
     int on_comboBoxChoixService_9_currentIndexChanged(int index);
     void on_pushButtonStart_clicked();
+    void ReadServices();
+
 };
 
 #endif // MAINWINDOW_H
