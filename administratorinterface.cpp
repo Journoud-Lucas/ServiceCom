@@ -1,13 +1,18 @@
 #include "administratorinterface.h"
 #include "ui_administratorinterface.h"
 
+
 AdministratorInterface::AdministratorInterface(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::AdministratorInterface)
 {
+#if _WIN32
+    m_pathDatabase="D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+#elif __ANDROID__
+    m_pathDatabase="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
+#endif
     initialConfigurationDone=false;
     ui->setupUi(this);
-    ResetButtonAdmin();
     ComboInit();
     initialConfigurationDone=true;
     UpdateService(1);
@@ -36,17 +41,12 @@ AdministratorInterface::~AdministratorInterface()
     delete ui;
 }
 
-void AdministratorInterface::ResetButtonAdmin()
-{
-    ui->ButtonReset->setStyleSheet("QPushButton {background-color: red;}");
-}
-
 int AdministratorInterface::ComboInit()
 {
     ui->comboBoxService->clear();
     // Création de la connexion à la base de données
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-        QString databasePath = "D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+        QString databasePath =  m_pathDatabase;
         db.setDatabaseName(databasePath);
         if (!db.open()) {
             qDebug() << "Erreur lors de l'ouverture de la base de données (databse initial) : " << db.lastError().text() << '\n';
@@ -79,7 +79,7 @@ int AdministratorInterface::UpdateService(int indexNombre)
     ui->tableWidgetServicesAdmin->setRowCount(0);
 
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
-    QString databasePath = "D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+    QString databasePath =  m_pathDatabase;
     db.setDatabaseName(databasePath);
 
     if (!db.open()) {
@@ -95,7 +95,7 @@ int AdministratorInterface::UpdateService(int indexNombre)
 
 
             // Affichage des résultats
-            while (query.next()) {
+            while (query.next()) {//
                 ui->tableWidgetServicesAdmin->setRowCount(ui->tableWidgetServicesAdmin->rowCount()+1);
                 ui->tableWidgetServicesAdmin->setItem(query.value(4).toInt()-1,0,new QTableWidgetItem(query.value(1).toString()));
                 ui->tableWidgetServicesAdmin->setItem(query.value(4).toInt()-1, 1, new QTableWidgetItem(query.value(2).toString()+"min "));

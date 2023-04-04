@@ -35,6 +35,7 @@ private:
     int UpdateService(int indexNombre);
     bool initialConfigurationDone;
     bool initialConfigurationIsDone();
+    QString m_pathDatabase;
 };
 
 #endif // ADMINISTRATORINTERFACE_H

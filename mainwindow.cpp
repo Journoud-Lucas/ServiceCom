@@ -2,9 +2,6 @@
 #include "ui_mainwindow.h"
 #include "administratorinterface.h"
 
-using namespace std;
-
-
 QByteArray HashingAndSalling(QString textToHash, quint32 saltValue);
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -25,30 +22,32 @@ MainWindow::~MainWindow()
 
 void MainWindow::TableView()
 {
-
          ui->tableWidgetServices->setColumnCount(2);
          ui->tableWidgetServices->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
          // set background and text color
          ui->tableWidgetServices->setShowGrid(false);
-         ui->tableWidgetServices->setColumnWidth(0, 618);
-         ui->tableWidgetServices->setColumnWidth(1, 125);
-         ui->tableWidgetServices->setColumnWidth(2, 375);
-
+         ui->tableWidgetServices->setColumnWidth(0, 1141);
+         ui->tableWidgetServices->setColumnWidth(1, 450);
 }
+
+void MainWindow::ResizeRow()
+{
+    for(int i=0; i<ui->tableWidgetServices->rowCount(); i++){
+        ui->tableWidgetServices->resizeRowToContents(i);
+    }
+}
+
 
 int MainWindow::Database()
 {
     ui->comboBoxChoixService_9->clear();
     // Création de la connexion à la base de données
         QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-        QString databasePath = "D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
-        db.setDatabaseName(databasePath);
+        db.setDatabaseName(m_pathDatabase);
         if (!db.open()) {
             qDebug() << "Erreur lors de l'ouverture de la base de données (databse initial) : " << db.lastError().text() << '\n';
             return 1;
         }
-
         // Exécution de la requête
         for(int i=1;i<5;i++)
         {
@@ -58,12 +57,10 @@ int MainWindow::Database()
                 db.close();
                 return 1;
             }
-
             // Affichage des résultats
             while (queryService.next()) {
                 qDebug()<<"Service : "<< queryService.value(0).toString() << ", colonne2 : " << queryService.value(1).toString();
                 ui->comboBoxChoixService_9->addItem(queryService.value(1).toString());
-
             }
         }
         // Fermeture de la connexion
@@ -94,8 +91,6 @@ void MainWindow::Settings()
     QRandomGenerator generator;
     quint32 saltValue = generator.generate();
     QByteArray hashedPassword = HashingAndSalling("arhm", saltValue);
-
-
     QDialog *dialog = new QDialog(this);
     QVBoxLayout *mainLayout = new QVBoxLayout(dialog);
     QLabel *label = new QLabel("Entrez le mot de passe :");
@@ -114,8 +109,6 @@ void MainWindow::Settings()
         //Hashage du text
         QString enterText = lineEdit->text().toLower();
         QByteArray hashedEnterText = HashingAndSalling(enterText, saltValue);
-
-
         if(hashedEnterText==hashedPassword) { //Corect password
             dialog->accept();
             ShowAdministratorInterface();
@@ -142,21 +135,37 @@ void MainWindow::ShowAdministratorInterface()
 
 void MainWindow::InitialConfiguration()
 {
-    ui->pushButtonStart->setText("Lancer");
-    ui->pushButtonStart->setStyleSheet("QPushButton {background-color: #92d04f; color: white;}");
+    m_sequenceIsStart=false;
+    ResetServices();
     CloseButtonConfiguration();
     SettingsButtonConfiguration();
     TableView();
+#if _WIN32
+    m_pathDatabase="D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+#elif __ANDROID__
+    m_pathDatabase="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
+#endif
     Database();
     m_engine= new QTextToSpeech;
-
+    m_sequenceIsStart=false;
     UpdateService(1);
 }
 
-
+void MainWindow::PushButtonStartConfiguration()
+{
+    ui->pushButtonStart->setText("Lancer");
+    ui->pushButtonStart->setStyleSheet("QPushButton {background-color: #92d04f; color: white;}");
+}
 
 int MainWindow::on_comboBoxChoixService_9_currentIndexChanged(int index)
 {
+    if(m_sequenceIsStart)
+    {
+        StopSequence();
+        UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
+        ResetServices();
+
+    }
     if(initialConfigurationIsDone())
     {
         UpdateService(index+1);
@@ -168,12 +177,8 @@ return 0;
 int MainWindow::UpdateService(int indexNombre)
 {
     ui->tableWidgetServices->setRowCount(0);
-
-
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
-    QString databasePath = "D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
-    db.setDatabaseName(databasePath);
-
+    db.setDatabaseName(m_pathDatabase);
     if (!db.open()) {
         qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
         return 1;
@@ -184,20 +189,15 @@ int MainWindow::UpdateService(int indexNombre)
                 db.close();
                 return 1;
             }
-
-
             // Affichage des résultats
             while (query.next()) {
                 ui->tableWidgetServices->setRowCount(ui->tableWidgetServices->rowCount()+1);
                 ui->tableWidgetServices->setItem(query.value(4).toInt()-1,0,new QTableWidgetItem(query.value(1).toString()));
-
-
                 ui->tableWidgetServices->setItem(query.value(4).toInt()-1,1,new QTableWidgetItem(query.value(2).toString()+"min "+ query.value(3).toString() + "sec"));
             }
-
         // Fermeture de la connexion
-
         db.close();
+        ResizeRow();
         return 0;
 }
 
@@ -208,70 +208,110 @@ bool MainWindow::initialConfigurationIsDone()
 
 void MainWindow::StartSequence()
 {
-    m_sequence=0;
     ui->pushButtonStart->setStyleSheet("QPushButton {background-color: orange; color: white;}");
     ui->pushButtonStart->setText("Continuer");
     // Timer pour le décompte
     m_timerNextSequence = new QTimer();
-
-    m_timerNextSequence->connect(m_timerNextSequence, &QTimer::timeout, this, &MainWindow::ReadServices);
-
-
+    m_timerSeconds = new QTimer();
+    m_timerNextSequence->connect(m_timerNextSequence, &QTimer::timeout, this, &MainWindow::ElapsedTime);
+    m_timerSeconds->connect(m_timerSeconds, &QTimer::timeout, this, &MainWindow::Timer);
     // Définir le timer pour exécuter la fonction toutes les 60 secondes
     m_timerNextSequence->start(0);
+    m_timerSeconds->start(1000);
+
+}
+
+void MainWindow::Timer()
+{
+    m_secondsRemaining--;
+    qDebug()<<m_secondsRemaining;
+    int minutes = m_secondsRemaining / 60;
+    int secondes = m_secondsRemaining % 60;
+    ui->tableWidgetServices->item(m_sequence-1,1)->setText(QString::number(minutes)+"min "+QString::number(secondes)+"sec");
+}
+
+void MainWindow::ElapsedTime() //Si le temps est écouler
+{
+    if(m_sequence<=ui->tableWidgetServices->rowCount()-1) //Si la séquence n'est pas finie
+    {
+        if(m_sequence!=0)
+        {
+            ColorRow(m_sequence-1,QColor(237,28,36)); //Mettre la ligne en rouge
+            ui->tableWidgetServices->item(m_sequence-1,1)->setText("0min 0sec"); //Mettre le temps a 0
+        }
+        ReadServices();
+    }
+    else if(m_sequence==ui->tableWidgetServices->rowCount())
+    {
+        StopSequence();
+        ColorRow(m_sequence-1,QColor(237,28,36));  //Mettre la ligne en rouge
+    }
+    else //Si la dernière ligne est atteinte
+    {
+        StopSequence();
+        ColorRow(m_sequence-1,QColor(237,28,36)); //Mettre la ligne en rouge
+        ui->tableWidgetServices->item(m_sequence-1,1)->setText("0min 0sec"); //Mettre le temps a 0s
+        ResetServices();
+    }
 
 }
 
 void MainWindow::ReadServices()
-{
-    if(m_sequence<=ui->tableWidgetServices->rowCount()-1)
-    {
-        ColorRow(m_sequence);
-        m_engine->say(ui->tableWidgetServices->item(m_sequence,0)->text());
-
-/*
-        int seconds;
-
-
-
-  std::regex min_pattern("\\d+(?=min)");
-  std::smatch min_results;
-  std::regex_search(str1, min_results, min_pattern);
-  int min1 = std::stoi(min_results[0]);
-  std::regex_search(str2, min_results, min_pattern);
-  int min2 = std::stoi(min_results[0]);
-
-  std::regex sec_pattern("\\d+(?=sec)");
-  std::smatch sec_results;
-  std::regex_search(str1, sec_results, sec_pattern);
-  int sec1 = std::stoi(sec_results[0]);
-  std::regex_search(str2, sec_results, sec_pattern);
-  int sec2 = std::stoi(sec_results[0]);
-
-        */
-
-
-     //a convertir les min et sec du string en ms   //m_timerNextSequence->setInterval(ui->tableWidgetServices->item(m_sequence,1)->text().toInt());
-        m_timerNextSequence->setInterval(5000);
-
+{    
+        ColorRow(m_sequence, QColor(255, 165, 0)); //Color actual row in orange
+        m_engine->say(ui->tableWidgetServices->item(m_sequence,0)->text()); //Say the actual row
+        QString time = ui->tableWidgetServices->item(m_sequence,1)->text(); //Split minutes and seconds into 2 int
+        QStringList timeParts = time.split(" ");
+        int minutes = timeParts[0].remove("min").toInt();
+        int seconds = timeParts[1].remove("sec").toInt();
+        m_secondsRemaining=minutes*60+seconds;
+        //a convertir les min et sec du string en ms
+        m_timerNextSequence->setInterval((minutes*60+seconds)*1000); //Set Timer for the next sequence
         m_sequence++;
-    }
-    else
-    {
-        m_timerNextSequence->stop();
-    }
 }
 
-void MainWindow::ColorRow(int row)
+void MainWindow::ColorRow(int row, QColor color)
 {
     for(int i=0;i<ui->tableWidgetServices->columnCount();i++)
     {
         QTableWidgetItem *item = ui->tableWidgetServices->item(row, i);
-        item->setBackground(QBrush(QColor(255, 165, 0)));
+        item->setBackground(QBrush(color));
     }
+}
+
+void MainWindow::ResetServices()
+{
+    m_sequence=0;
+    UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
+    PushButtonStartConfiguration();
+}
+
+void MainWindow::StopSequence()
+{
+    m_timerNextSequence->stop(); //Arreter la sequence
+    m_timerSeconds->stop();
+    m_sequenceIsStart=false;
 }
 
 void MainWindow::on_pushButtonStart_clicked()
 {
+    if(!m_sequenceIsStart)
+    {
+        m_sequenceIsStart=true;
         StartSequence();
+    }
+    else {
+        if(m_sequence<=ui->tableWidgetServices->rowCount()-1) //Si la séquence n'est pas finie
+        {
+            ReadServices();
+            ColorRow(m_sequence-2,QColor(146,208,79)); //Mettre la ligne en verte
+        }
+        else //Si la dernière ligne est atteinte
+        {
+            StopSequence();
+            ColorRow(m_sequence-1,QColor(146,208,79)); //Mettre la ligne en verte
+            UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
+            ResetServices();
+        }
+    }
 }
