@@ -38,34 +38,34 @@ void MainWindow::ResizeRow()
 }
 
 
-int MainWindow::Database()
+int MainWindow::ConfigComboBox()
 {
-    ui->comboBoxChoixService_9->clear();
-    // Création de la connexion à la base de données
-        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-        db.setDatabaseName(m_pathDatabase);
+    QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName(m_databasePath);
+
         if (!db.open()) {
-            qDebug() << "Erreur lors de l'ouverture de la base de données (databse initial) : " << db.lastError().text() << '\n';
+            qDebug() << "Erreur lors de l'ouverture de la base de données (config combobox) : " << db.lastError().text() << '\n';
             return 1;
         }
-        // Exécution de la requête
-        for(int i=1;i<5;i++)
-        {
-            QSqlQuery queryService("SELECT * FROM tservice WHERE IdService = "+QString::number(i));
-            if(!queryService.exec()){
-                qDebug() << "Erreur lors de l'execution de la requête : " << queryService.lastError().text() << '\n';
-                db.close();
-                return 1;
-            }
-            // Affichage des résultats
-            while (queryService.next()) {
-                qDebug()<<"Service : "<< queryService.value(0).toString() << ", colonne2 : " << queryService.value(1).toString();
-                ui->comboBoxChoixService_9->addItem(queryService.value(1).toString());
-            }
-        }
-        // Fermeture de la connexion
-        db.close();
-        return 0;
+                QSqlQuery query("SELECT NameService FROM tservice");
+                if(!query.exec()){
+                    qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+                    db.close();
+                    return 1;
+                }
+
+
+                // Affichage des résultats
+                while (query.next()) {
+                     ui->comboBoxChoixService_9->addItem(query.value(0).toString());
+                }
+
+            // Fermeture de la connexion
+
+            db.close();
+            db.removeDatabase("QSQLITE");
+
+            return 0;
 }
 
 void MainWindow::CloseButtonConfiguration()
@@ -141,11 +141,11 @@ void MainWindow::InitialConfiguration()
     SettingsButtonConfiguration();
     TableView();
 #if _WIN32
-    m_pathDatabase="D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+    m_databasePath="D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
 #elif __ANDROID__
-    m_pathDatabase="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
+    m_databasePath="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
 #endif
-    Database();
+    ConfigComboBox();
     m_engine= new QTextToSpeech;
     m_sequenceIsStart=false;
     UpdateService(1);
@@ -177,28 +177,37 @@ return 0;
 int MainWindow::UpdateService(int indexNombre)
 {
     ui->tableWidgetServices->setRowCount(0);
-    QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(m_pathDatabase);
-    if (!db.open()) {
-        qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
-        return 1;
-    }
-            QSqlQuery query("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(indexNombre));
-            if(!query.exec()){
-                qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
-                db.close();
-                return 1;
-            }
-            // Affichage des résultats
-            while (query.next()) {
-                ui->tableWidgetServices->setRowCount(ui->tableWidgetServices->rowCount()+1);
-                ui->tableWidgetServices->setItem(query.value(4).toInt()-1,0,new QTableWidgetItem(query.value(1).toString()));
-                ui->tableWidgetServices->setItem(query.value(4).toInt()-1,1,new QTableWidgetItem(query.value(2).toString()+"min "+ query.value(3).toString() + "sec"));
-            }
-        // Fermeture de la connexion
-        db.close();
-        ResizeRow();
-        return 0;
+
+
+        QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName(m_databasePath);
+
+        if (!db.open()) {
+            qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
+            return 1;
+        }
+                QSqlQuery query("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(indexNombre));
+                if(!query.exec()){
+                    qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+                    db.close();
+                    return 1;
+                }
+
+
+                // Affichage des résultats
+                while (query.next()) {
+                    ui->tableWidgetServices->setRowCount((ui->tableWidgetServices->rowCount())+1);
+                    ui->tableWidgetServices->setItem(query.value(3).toInt()-1,0,new QTableWidgetItem(query.value(1).toString())); //NomActiviter
+                    QString tempsHeureMinuteSeconde = QString("%1h %2m %3s").arg(query.value(2).toInt()/3600).arg((query.value(2).toInt()%3600)/60).arg(query.value(2).toInt()%60);
+                    ui->tableWidgetServices->setItem(query.value(3).toInt()-1,1,new QTableWidgetItem(tempsHeureMinuteSeconde)); //TempHeureMinuteSeconde
+                }
+
+            // Fermeture de la connexion
+
+            db.close();
+            db.removeDatabase("QSQLITE");
+            ResizeRow();
+            return 0;
 }
 
 bool MainWindow::initialConfigurationIsDone()
@@ -224,10 +233,7 @@ void MainWindow::StartSequence()
 void MainWindow::Timer()
 {
     m_secondsRemaining--;
-    qDebug()<<m_secondsRemaining;
-    int minutes = m_secondsRemaining / 60;
-    int secondes = m_secondsRemaining % 60;
-    ui->tableWidgetServices->item(m_sequence-1,1)->setText(QString::number(minutes)+"min "+QString::number(secondes)+"sec");
+    ui->tableWidgetServices->item(m_sequence-1,1)->setText(QString("%1h %2m %3s").arg(m_secondsRemaining/3600).arg((m_secondsRemaining%3600)/60).arg(m_secondsRemaining%60));
 }
 
 void MainWindow::ElapsedTime() //Si le temps est écouler
@@ -237,7 +243,7 @@ void MainWindow::ElapsedTime() //Si le temps est écouler
         if(m_sequence!=0)
         {
             ColorRow(m_sequence-1,QColor(237,28,36)); //Mettre la ligne en rouge
-            ui->tableWidgetServices->item(m_sequence-1,1)->setText("0min 0sec"); //Mettre le temps a 0
+            ui->tableWidgetServices->item(m_sequence-1,1)->setText("0h 0m 0s"); //Mettre le temps a 0
         }
         ReadServices();
     }
@@ -250,7 +256,7 @@ void MainWindow::ElapsedTime() //Si le temps est écouler
     {
         StopSequence();
         ColorRow(m_sequence-1,QColor(237,28,36)); //Mettre la ligne en rouge
-        ui->tableWidgetServices->item(m_sequence-1,1)->setText("0min 0sec"); //Mettre le temps a 0s
+        ui->tableWidgetServices->item(m_sequence-1,1)->setText("0h 0m 0s"); //Mettre le temps a 0s
         ResetServices();
     }
 
@@ -260,13 +266,14 @@ void MainWindow::ReadServices()
 {    
         ColorRow(m_sequence, QColor(255, 165, 0)); //Color actual row in orange
         m_engine->say(ui->tableWidgetServices->item(m_sequence,0)->text()); //Say the actual row
-        QString time = ui->tableWidgetServices->item(m_sequence,1)->text(); //Split minutes and seconds into 2 int
+        QString time = ui->tableWidgetServices->item(m_sequence,1)->text(); //Split hours, minutes and seconds into 2 int
         QStringList timeParts = time.split(" ");
-        int minutes = timeParts[0].remove("min").toInt();
-        int seconds = timeParts[1].remove("sec").toInt();
-        m_secondsRemaining=minutes*60+seconds;
-        //a convertir les min et sec du string en ms
-        m_timerNextSequence->setInterval((minutes*60+seconds)*1000); //Set Timer for the next sequence
+        int heures = timeParts[0].remove("h").toInt();
+        int minutes = timeParts[1].remove("m").toInt();
+        int seconds = timeParts[2].remove("s").toInt();
+        m_secondsRemaining=heures*3600+minutes*60+seconds;
+        //a convertir les hn les m et s du string en ms
+        m_timerNextSequence->setInterval((heures*3600+minutes*60+seconds)*1000); //Set Timer for the next sequence
         m_sequence++;
 }
 

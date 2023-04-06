@@ -31,7 +31,7 @@ public:
     void CloseButtonConfiguration();
     void SettingsButtonConfiguration();
     void PushButtonStartConfiguration();
-    int Database();
+    int ConfigComboBox();
     void InitialConfiguration();
     int UpdateService(int index);
     bool initialConfigurationIsDone();
@@ -52,7 +52,7 @@ private:
     QTimer *m_timerSeconds;
     int m_secondsRemaining;
     bool m_sequenceIsStart;
-    QString m_pathDatabase;
+    QString m_databasePath;
 
 
 public slots:

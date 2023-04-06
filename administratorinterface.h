@@ -28,6 +28,8 @@ public:
 private slots:
     int on_comboBoxService_currentIndexChanged(int index);
 
+    void on_ButtonAjouter_clicked();
+
 private:
     Ui::AdministratorInterface *ui;
     void ResetButtonAdmin();
@@ -35,7 +37,8 @@ private:
     int UpdateService(int indexNombre);
     bool initialConfigurationDone;
     bool initialConfigurationIsDone();
-    QString m_pathDatabase;
+    QString m_databasePath;
+    void ResizeRow();
 };
 
 #endif // ADMINISTRATORINTERFACE_H
