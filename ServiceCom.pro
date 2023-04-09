@@ -31,17 +31,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
-        administratorinterface.cpp \
         main.cpp \
         mainwindow.cpp
 
 HEADERS += \
-        administratorinterface.h \
         mainwindow.h
 
 FORMS += \
-    mainwindow.ui \
-    administratorinterface.ui
+    mainwindow.ui
 
 CONFIG += mobility
 MOBILITY = 
