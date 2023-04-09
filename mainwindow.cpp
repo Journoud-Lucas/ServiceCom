@@ -169,7 +169,7 @@ void MainWindow::InitialConfiguration()
     m_engine= new QTextToSpeech;
     m_sequenceIsStart=false;
     UpdateService(1);
-    ui->stackedWidget->setCurrentIndex(0); //Main Window
+    ui->stackedWidget->setCurrentIndex(0);//MainWindow
 }
 
 void MainWindow::PushButtonStartConfiguration()
