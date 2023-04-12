@@ -12,6 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->showFullScreen();
     InitialConfiguration();
     initialConfigurationDone=true;
+    DecrementIdActivite();
 
 }
 
@@ -29,7 +30,7 @@ void MainWindow::TableView()
          ui->tableWidgetServices->setColumnWidth(0, 1141);
          ui->tableWidgetServices->setColumnWidth(1, 450);
 
-         ui->tableWidgetServicesAdmin->setColumnCount(3);
+         ui->tableWidgetServicesAdmin->setColumnCount(2);
          ui->tableWidgetServicesAdmin->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
          // set background and text color
@@ -155,7 +156,7 @@ QByteArray HashingAndSalling(QString textToHash, quint32 saltValue)
 
 void MainWindow::InitialConfiguration()
 {
-    m_sequenceIsStart=false;
+    m_serviceIsStart=false;
     ResetServices();
     CloseButtonConfiguration();
     SettingsButtonConfiguration();
@@ -165,10 +166,9 @@ void MainWindow::InitialConfiguration()
 #elif __ANDROID__
     m_databasePath="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
 #endif
-    UpdateSequence();
+    UpdateSequence(GetSelectedIndexService());
     m_engine= new QTextToSpeech;
-    m_sequenceIsStart=false;
-    UpdateService(1);
+    m_serviceIsStart=false;
     ui->stackedWidget->setCurrentIndex(0);//MainWindow
 }
 
@@ -185,10 +185,13 @@ void MainWindow::on_comboBoxChoixService_9_currentIndexChanged(int index)
 
 void MainWindow::ComboboxChange(int index)
 {
+
+
+
     ui->comboBoxService->setCurrentIndex(index);
     ui->comboBoxChoixService_9->setCurrentIndex(index);
 
-    if(m_sequenceIsStart)
+    if(m_serviceIsStart)
     {
                      StopSequence();
                      UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
@@ -197,14 +200,14 @@ void MainWindow::ComboboxChange(int index)
     }
     if(initialConfigurationIsDone()&&m_update)
     {
-                     UpdateService(index+1);
+        UpdateService(index+1);
+        ChangeLastSelectedIndexService(index);
     }
 }
 
 void MainWindow::on_comboBoxService_currentIndexChanged(int index)
 {
     ComboboxChange(index);
-
 }
 
 int MainWindow::UpdateService(int indexNombre)
@@ -238,8 +241,6 @@ int MainWindow::UpdateService(int indexNombre)
                     QString tempsHeureMinuteSeconde = QString("%1h %2m %3s").arg(query.value(2).toInt()/3600).arg((query.value(2).toInt()%3600)/60).arg(query.value(2).toInt()%60);
                     ui->tableWidgetServices->setItem(query.value(3).toInt()-1,1,new QTableWidgetItem(tempsHeureMinuteSeconde)); //TempHeureMinuteSeconde
                     ui->tableWidgetServicesAdmin->setItem(query.value(3).toInt()-1,1,new QTableWidgetItem(tempsHeureMinuteSeconde)); //TempHeureMinuteSeconde
-                    ui->tableWidgetServicesAdmin->setItem(query.value(3).toInt()-1,2,new QTableWidgetItem(query.value(3).toString())); //NomActiviter
-
                 }
 
             // Fermeture de la connexion
@@ -257,56 +258,49 @@ bool MainWindow::initialConfigurationIsDone()
 
 void MainWindow::StartSequence()
 {
-    ui->pushButtonStart->setStyleSheet("QPushButton {background-color: orange; color: white;}");
-    ui->pushButtonStart->setText("Continuer");
-    // Timer pour le décompte
-    m_timerNextSequence = new QTimer();
-    m_timerSeconds = new QTimer();
-    m_timerNextSequence->connect(m_timerNextSequence, &QTimer::timeout, this, &MainWindow::ElapsedTime);
-    m_timerSeconds->connect(m_timerSeconds, &QTimer::timeout, this, &MainWindow::Timer);
-    // Définir le timer pour exécuter la fonction toutes les 60 secondes
-    m_timerNextSequence->start(0);
-    m_timerSeconds->start(1000);
-
+        ui->pushButtonStart->setStyleSheet("QPushButton {background-color: orange; color: white;}");
+        ui->pushButtonStart->setText("Continuer");
+        // Timer pour le décompte
+        m_timerNextSequence = new QTimer();
+        m_timerSeconds = new QTimer();
+        m_timerNextSequence->connect(m_timerNextSequence, &QTimer::timeout, this, &MainWindow::ElapsedTime);
+        m_timerSeconds->connect(m_timerSeconds, &QTimer::timeout, this, &MainWindow::Timer);
+        // Définir le timer pour exécuter la fonction toutes les 60 secondes
+        m_timerNextSequence->start(0);
+        m_timerSeconds->start(1000);
 }
 
 void MainWindow::Timer()
 {
     m_secondsRemaining--;
-    ui->tableWidgetServices->item(m_sequence-1,1)->setText(QString("%1h %2m %3s").arg(m_secondsRemaining/3600).arg((m_secondsRemaining%3600)/60).arg(m_secondsRemaining%60));
+    ui->tableWidgetServices->item(m_service-1,1)->setText(QString("%1h %2m %3s").arg(m_secondsRemaining/3600).arg((m_secondsRemaining%3600)/60).arg(m_secondsRemaining%60));
 }
 
 void MainWindow::ElapsedTime() //Si le temps est écouler
 {
-    if(m_sequence<=ui->tableWidgetServices->rowCount()-1) //Si la séquence n'est pas finie
+    if(m_service<=ui->tableWidgetServices->rowCount()-1) //Si la séquence n'est pas finie
     {
-        if(m_sequence!=0)
+        if(m_service!=0)
         {
-            ColorRow(m_sequence-1,QColor(237,28,36)); //Mettre la ligne en rouge
-            ui->tableWidgetServices->item(m_sequence-1,1)->setText("0h 0m 0s"); //Mettre le temps a 0
+            ColorRow(m_service-1,QColor(237,28,36)); //Mettre la ligne en rouge
+            ui->tableWidgetServices->item(m_service-1,1)->setText("0h 0m 0s"); //Mettre le temps a 0
         }
         ReadServices();
-    }
-    else if(m_sequence==ui->tableWidgetServices->rowCount())
-    {
-        StopSequence();
-        ColorRow(m_sequence-1,QColor(237,28,36));  //Mettre la ligne en rouge
     }
     else //Si la dernière ligne est atteinte
     {
         StopSequence();
-        ColorRow(m_sequence-1,QColor(237,28,36)); //Mettre la ligne en rouge
-        ui->tableWidgetServices->item(m_sequence-1,1)->setText("0h 0m 0s"); //Mettre le temps a 0s
+        ColorRow(m_service-1,QColor(237,28,36)); //Mettre la ligne en rouge
+        ui->tableWidgetServices->item(m_service-1,1)->setText("0h 0m 0s"); //Mettre le temps a 0s
         ResetServices();
     }
-
 }
 
 void MainWindow::ReadServices()
 {    
-        ColorRow(m_sequence, QColor(255, 165, 0)); //Color actual row in orange
-        m_engine->say(ui->tableWidgetServices->item(m_sequence,0)->text()); //Say the actual row
-        QString time = ui->tableWidgetServices->item(m_sequence,1)->text(); //Split hours, minutes and seconds into 2 int
+        ColorRow(m_service, QColor(255, 165, 0)); //Color actual row in orange
+        m_engine->say(ui->tableWidgetServices->item(m_service,0)->text()); //Say the actual row
+        QString time = ui->tableWidgetServices->item(m_service,1)->text(); //Split hours, minutes and seconds into 2 int
         QStringList timeParts = time.split(" ");
         int heures = timeParts[0].remove("h").toInt();
         int minutes = timeParts[1].remove("m").toInt();
@@ -314,7 +308,7 @@ void MainWindow::ReadServices()
         m_secondsRemaining=heures*3600+minutes*60+seconds;
         //a convertir les hn les m et s du string en ms
         m_timerNextSequence->setInterval((heures*3600+minutes*60+seconds)*1000); //Set Timer for the next sequence
-        m_sequence++;
+        m_service++;
 }
 
 void MainWindow::ColorRow(int row, QColor color)
@@ -328,7 +322,7 @@ void MainWindow::ColorRow(int row, QColor color)
 
 void MainWindow::ResetServices()
 {
-    m_sequence=0;
+    m_service=0;
     UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
     PushButtonStartConfiguration();
 }
@@ -337,28 +331,31 @@ void MainWindow::StopSequence()
 {
     m_timerNextSequence->stop(); //Arreter la sequence
     m_timerSeconds->stop();
-    m_sequenceIsStart=false;
+    m_serviceIsStart=false;
 }
 
 void MainWindow::on_pushButtonStart_clicked()
 {
-    if(!m_sequenceIsStart)
+    if(ui->tableWidgetServices->rowCount()!=0)
     {
-        m_sequenceIsStart=true;
-        StartSequence();
-    }
-    else {
-        if(m_sequence<=ui->tableWidgetServices->rowCount()-1) //Si la séquence n'est pas finie
+        if(!m_serviceIsStart)
         {
-            ReadServices();
-            ColorRow(m_sequence-2,QColor(146,208,79)); //Mettre la ligne en verte
+            m_serviceIsStart=true;
+            StartSequence();
         }
-        else //Si la dernière ligne est atteinte
-        {
-            StopSequence();
-            ColorRow(m_sequence-1,QColor(146,208,79)); //Mettre la ligne en verte
-            UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
-            ResetServices();
+        else {
+            if(m_service<=ui->tableWidgetServices->rowCount()-1) //Si la séquence n'est pas finie
+            {
+                ReadServices();
+                ColorRow(m_service-2,QColor(146,208,79)); //Mettre la ligne en verte
+            }
+            else //Si la dernière ligne est atteinte
+            {
+                StopSequence();
+                ColorRow(m_service-1,QColor(146,208,79)); //Mettre la ligne en verte
+                UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
+                ResetServices();
+            }
         }
     }
 }
@@ -368,18 +365,16 @@ void MainWindow::on_pushButton_clicked()
     ui->stackedWidget->setCurrentIndex(0);
 }
 
-void MainWindow::UpdateSequence()
+void MainWindow::UpdateSequence(int selectedSequence)
 {
     m_update=false;
     ui->comboBoxChoixService_9->clear();
     ui->comboBoxService->clear();
     ConfigComboBox();
     m_update=true;
-    ui->comboBoxChoixService_9->setCurrentIndex(0);
-    ui->comboBoxChoixService_9->setCurrentIndex(0);
-    UpdateService(ui->comboBoxChoixService_9->count());
-    UpdateService(ui->comboBoxService->count());
-
+    ui->comboBoxChoixService_9->setCurrentIndex(selectedSequence);
+    ui->comboBoxService->setCurrentIndex(selectedSequence);
+    UpdateService(selectedSequence+1);
 }
 
 
@@ -427,8 +422,6 @@ void MainWindow::on_ButtonAjouter_clicked()
                 QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE"); // Définir le type de la base de donnée
                 db.setDatabaseName(m_databasePath); // Assigner le chemin à la variable de la base de donnée
                 db.open(); // Ouvrir la base de données
-
-                //QString queryStr = "INSERT INTO tactivite (IdActivite, NomActivite, NomSon, NomImage, TempsSeconde, OrdreActivite, fk_tactivite_tsequence, AffichageMinuteur, AlarmeSonore, AlarmeVisuelle, VisionnageProchaineActivite) VALUES(" + QString::number(maxIdActivite+1) + ",'" + NameActivitelineEdit->text() + "','" + NameSoundlineEdit->text() + "','" + NameImagelineEdit->text() + "'," + QString::number(timeEdit->time().hour()*3600+timeEdit->time().minute()*60+timeEdit->time().second()) +"," + QString::number(ui->tableWidget->rowCount()+1) + "," + QString::number(ui->comboBoxSequence->currentIndex()+1) + "," + QString::number(checkBoxMinute->isChecked()) + "," + QString::number(checkBoxAlarmeSonore->isChecked()) + "," + QString::number(checkBoxAlarmeVisuelle->isChecked()) + "," + QString::number(checkBoxMinuteVisionnage->isChecked()) + ")";
 
 
                 QString queryStr = QString("INSERT INTO titem (IdItem, NameItem, Time, OrdreItem, fk_titem_tservice) VALUES(%1, '%2', %3, %4, %5)").arg(QString::number(maxIdActivite+1)).arg(lineEditNameActivite->text()).arg(QString::number(timeEdit->time().hour()*3600+timeEdit->time().minute()*60+timeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()+1)).arg(QString::number(ui->comboBoxService->currentIndex()+1));
@@ -569,3 +562,330 @@ void MainWindow::on_ButtonModifier_clicked()
          }
 }
 
+
+void MainWindow::on_ButtonSupprimer_clicked()
+{
+    // Récupérer les plages sélectionnées
+         QList<QTableWidgetSelectionRange> selectionRanges = ui->tableWidgetServicesAdmin->selectedRanges();
+    if(!selectionRanges.isEmpty())
+    {
+        // Récupérer le numéro de ligne de la première case sélectionnée
+        int firstRow = selectionRanges.first().topRow();
+        // Récupérer le numéro de ligne de la dernière case sélectionnée
+        int lastRow = selectionRanges.last().bottomRow();
+        qDebug() << "1st row: " <<firstRow << " last row: "<< lastRow;
+        QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName(m_databasePath);
+
+        if (!db.open()) {
+            qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
+            return;
+        }
+        if (!db.isOpen()) {
+            qDebug() << "La connexion à la base de données n'est pas ouverte. "<<db.lastError().text();
+            db.close();
+            db.removeDatabase("QSQLITE");
+        }
+                qDebug()<<QString::number(ui->comboBoxService->currentIndex()+1);
+                qDebug()<<"DELETE FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxService->currentIndex()+1)+" AND OrdreItem BETWEEN " + QString::number(firstRow+1) + " AND "+QString::number(lastRow+1);
+                QSqlQuery query("DELETE FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxService->currentIndex()+1)+" AND OrdreItem BETWEEN " + QString::number(firstRow+1) + " AND "+QString::number(lastRow+1));
+                if(!query.exec()){
+                    qDebug() << "Erreur lors de la supression du/des srvices : " << query.lastError().text() << '\n';
+                    db.close();
+                    db.removeDatabase("QSQLITE");
+                    return;
+                }
+
+            // Fermeture de la connexion
+
+            db.close();
+            db.removeDatabase("QSQLITE");
+            DecrementIdActivite();
+            UpdateService(ui->comboBoxService->currentIndex()+1);
+    }
+    else
+    {
+        QMessageBox::critical(this,tr("Erreur"), tr("Veuillez séléctionnez une ou plusieurs lignes a supprimer"));
+    }
+        return;
+}
+
+void MainWindow::DecrementIdActivite()
+{
+        QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName(m_databasePath);
+        if (!db.open())
+        {
+        qDebug() << "Impossible de se connecter a la base de donnees ";
+        return;
+        }
+
+        QSqlQuery query;
+        query.exec("SELECT * FROM titem");
+        int idActivite = 0;
+        while (query.next())
+        {
+        idActivite++;
+        int currentIdActivite = query.value(0).toInt();
+        if (idActivite != currentIdActivite)
+        {
+                    //L'id n'est pas le bon, on le corrige
+                    QString updateQuery = QString("UPDATE titem SET IdItem = %1 WHERE IdItem = %2").arg(idActivite).arg(currentIdActivite);
+                    query.exec(updateQuery);
+        }
+        }
+
+        query.exec("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxService->currentIndex()+1));
+        int ordreActivite=0;
+        while (query.next())
+        {
+        ordreActivite++;
+        int currentIdOrdre = query.value(3).toInt();
+        if (ordreActivite != currentIdOrdre)
+        {
+                    //L'id n'est pas le bon, on le corrige
+                    QString updateQuery = QString("UPDATE titem SET OrdreItem = %1 WHERE OrdreItem = %2 AND fk_titem_tservice = %3").arg(ordreActivite).arg(currentIdOrdre).arg(QString::number(ui->comboBoxService->currentIndex()+1));
+                    qDebug()<<updateQuery;
+                    if(!query.exec(updateQuery)){
+                        qDebug() << "Erreur lors de la requête permettant de remettre en ordre l'ordre des items : " << query.lastError().text() << '\n';
+                    }
+                    else
+                    {
+                        qDebug() << "Ordres des items mis a jour avec succès" << '\n';
+                    }
+
+        }
+        }
+        db.close();
+        db.removeDatabase("QSQLITE");
+}
+
+void MainWindow::on_ButtonAjouterCombo_clicked()
+{
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName(m_databasePath);
+        db.open();
+
+        int maxIdService = 0;
+        QSqlQuery query;
+        query.prepare("SELECT MAX(IdService) FROM tservice");
+        if (!query.exec())
+        {
+        qDebug() << "Erreur lors de la requête permettant de récupérer l'id maximum des services pour la création d'un nouveau service : " << query.lastError().text() << '\n';
+        }
+        else
+        {
+            if (query.next())
+            {
+                maxIdService = query.value(0).toInt();
+            }
+        }
+
+        db.close();
+        db.removeDatabase("QSQLITE");
+
+        QRegExpValidator *validator = new QRegExpValidator(QRegExp("[A-Za-z0-9 éè!?.']*"));
+
+        QDialog *dialog = new QDialog(this);
+        dialog->setWindowTitle("Ajouter un service");
+        QVBoxLayout *mainLayout = new QVBoxLayout(dialog);
+        QLabel *label = new QLabel("Nom du service :");
+        QLineEdit *NameActivitelineEdit = new QLineEdit;
+
+
+
+        QPushButton *okButton = new QPushButton("OK");
+
+
+
+        NameActivitelineEdit->setValidator(validator);
+
+
+        mainLayout->addWidget(label);
+        mainLayout->addWidget(NameActivitelineEdit);
+        mainLayout->addWidget(okButton);
+
+        dialog->setLayout(mainLayout);
+        dialog->connect(okButton, &QPushButton::clicked, [&](){ //When validation button was pressed
+            if (!NameActivitelineEdit->text().isEmpty())
+            {
+
+                dialog->accept();
+
+                QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE"); // Définir le type de la base de donnée
+                db.setDatabaseName(m_databasePath); // Assigner le chemin à la variable de la base de donnée
+                db.open(); // Ouvrir la base de données
+
+                QSqlQuery query; // Créer un objet de type QSqlQuery
+                query.prepare("INSERT INTO tservice (IdService, NameService) VALUES(" + QString::number(maxIdService+1) + ",'" + NameActivitelineEdit->text() + "')"); // Préparer la requête
+                if(query.exec()){ // Executer la requête
+                    qDebug() << "Nouveau service ajouté avec succès"; // Afficher un message de succès
+                    UpdateSequence(ui->comboBoxService->currentIndex());
+                    ui->comboBoxService->setCurrentIndex(ui->comboBoxService->count()-1);
+
+                }
+                else{
+                    qDebug() << "Erreur lors de la création de la séquence" << query.lastError(); // Afficher un message d'erreur
+                }
+                db.close(); // Fermer la base de données
+                db.removeDatabase("QSQLITE");
+             }
+            else {
+                if (NameActivitelineEdit->text().isEmpty())
+                {
+                    QMessageBox::critical(this,tr("Erreur"), tr("Veuillez entrez un nom de séquence"));
+                }
+
+            }
+
+        });
+
+
+        dialog->exec();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+void MainWindow::DecrementIdSequence()
+{
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+            db.setDatabaseName(m_databasePath);
+            if (!db.open())
+            {
+                qDebug() << "Impossible de se connecter a la base de donnees";
+                return;
+            }
+
+            QSqlQuery query;
+            query.exec("SELECT * FROM tservice");
+            int idSequence = 0;
+            while (query.next())
+            {
+                idSequence++;
+                int currentIdSequence = query.value(0).toInt();
+                if (idSequence != currentIdSequence)
+                {
+                    //L'id n'est pas le bon, on le corrige
+                    QString updateQuery = QString("UPDATE tservice SET IdService = %1 WHERE IdService = %2").arg(idSequence).arg(currentIdSequence);
+                    query.exec(updateQuery);
+                }
+            }
+            db.close();
+            db.removeDatabase("QSQLITE");
+}
+
+
+
+
+void MainWindow::on_pushButtonDeleteService_clicked()
+{
+    QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(nullptr, "Suppresion séquence", "Voulez-vous vraiment supprimer le service <b>"+ui->comboBoxService->currentText() +"</b> qui contient <b>" + QString::number(ui->tableWidgetServicesAdmin->rowCount())+ "</b> activités ?", QMessageBox::Yes|QMessageBox::No);
+       if (reply == QMessageBox::Yes) {
+           // Le bouton "Oui" a été cliqué
+           // Récupérer les plages sélectionnées
+               QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
+               db.setDatabaseName(m_databasePath);
+
+               if (!db.open()) {
+                   qDebug() << "Erreur lors de l'ouverture de la base de données (supprimer sequence) : " << db.lastError().text() << '\n';
+                   return;
+               }
+               qDebug()<<QString("DELETE FROM tservice WHERE IdService = %1").arg(ui->comboBoxService->currentIndex()+1);
+
+                       QSqlQuery query(QString("DELETE FROM tservice WHERE IdService = %1").arg(ui->comboBoxService->currentIndex()+1));
+                       if(!query.exec()){
+                           qDebug() << "Erreur lors de la supression du service: " << query.lastError().text() << '\n';
+                           db.close();
+                           db.removeDatabase("QSQLITE");
+                           return;
+                       }
+                       QSqlQuery secondQuery(QString("DELETE FROM titem WHERE fk_titem_tservice = %1").arg(ui->comboBoxService->currentIndex()+1));
+                       if(!secondQuery.exec()){
+                           qDebug() << "Erreur lors de la suprression des activités liés au service supprimé: " << secondQuery.lastError().text() << '\n';
+                           db.close();
+                           db.removeDatabase("QSQLITE");
+                           return;
+                       }
+
+                       QSqlQuery thirdQuery;
+                            thirdQuery.prepare("UPDATE titem SET fk_titem_tservice = fk_titem_tservice - 1 WHERE fk_titem_tservice > ?");
+                            thirdQuery.addBindValue(ui->comboBoxService->currentIndex()+1);
+                            thirdQuery.exec();
+
+
+                   // Fermeture de la connexion
+
+                   db.close();
+                   db.removeDatabase("QSQLITE");
+                   DecrementIdSequence();
+                   UpdateSequence(ui->comboBoxService->currentIndex()-1);
+       }
+       else {
+           // Le bouton "Non" a été cliqué ou la boîte de dialogue a été fermée
+       }
+}
+
+void MainWindow::ChangeLastSelectedIndexService(int index)
+{
+       QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
+       db.setDatabaseName(m_databasePath);
+
+       db.open();
+       QString queryStr = QString("UPDATE tsettings SET ValueOfTheSettings = %1 WHERE IdSettings = 1").arg(index);
+       qDebug()<<queryStr;
+       QSqlQuery query(queryStr);
+       if(!query.exec())
+       {
+            qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+       }
+       else
+       {
+            qDebug() << "Changement de l'index du dernier service sélécitonner, changer avec succès." << '\n';
+       }
+
+
+       // Fermeture de la connexion
+
+       db.close();
+       db.removeDatabase("QSQLITE");
+}
+
+int MainWindow::GetSelectedIndexService()
+{
+       int index = 0;
+       QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
+       db.setDatabaseName(m_databasePath);
+
+       db.open();
+       QSqlQuery query("SELECT ValueOfTheSettings FROM tsettings WHERE IdSettings = 1");
+
+       if(query.exec())
+       {
+            while(query.next())
+            {
+                           index = query.value(0).toInt();
+            }
+       }
+       else
+       {
+            qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+       }
+
+       // Fermeture de la connexion
+       db.close();
+       db.removeDatabase("QSQLITE");
+
+       return index;
+}

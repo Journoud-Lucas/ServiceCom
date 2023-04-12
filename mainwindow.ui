@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1920</width>
-    <height>1205</height>
+    <height>1231</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -779,7 +779,7 @@
                    </spacer>
                   </item>
                   <item>
-                   <widget class="QPushButton" name="ButtonAnnulerCombo">
+                   <widget class="QPushButton" name="pushButtonDeleteService">
                     <property name="font">
                      <font>
                       <family>Calibri</family>

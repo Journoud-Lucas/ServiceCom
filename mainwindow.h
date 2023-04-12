@@ -41,18 +41,22 @@ public:
     void ReadServices();
     void ResetServices();
     void StopSequence();
-    void UpdateSequence();
+    void UpdateSequence(int selectedSequence);
+    void DecrementIdActivite();
+    void DecrementIdSequence();
+    void ChangeLastSelectedIndexService(int index);
+    int GetSelectedIndexService();
 
 private:
     Ui::MainWindow *ui;
     QTextToSpeech *m_engine;
     QSqlDatabase *m_db;
     bool initialConfigurationDone;
-    int m_sequence;
+    int m_service;
     QTimer *m_timerNextSequence;
     QTimer *m_timerSeconds;
     int m_secondsRemaining;
-    bool m_sequenceIsStart;
+    bool m_serviceIsStart;
     QString m_databasePath;
     bool m_update;
 
@@ -73,6 +77,9 @@ private slots:
 
     void on_ButtonAjouter_clicked();
     void on_ButtonModifier_clicked();
+    void on_ButtonSupprimer_clicked();
+    void on_ButtonAjouterCombo_clicked();
+    void on_pushButtonDeleteService_clicked();
 };
 
 #endif // MAINWINDOW_H
