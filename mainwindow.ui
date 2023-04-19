@@ -18,7 +18,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="page">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -165,7 +165,7 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="comboBoxChoixService_9">
+               <widget class="QComboBox" name="comboBoxServices">
                 <property name="minimumSize">
                  <size>
                   <width>290</width>
@@ -705,7 +705,7 @@
                    </widget>
                   </item>
                   <item>
-                   <widget class="QComboBox" name="comboBoxService">
+                   <widget class="QComboBox" name="comboBoxServicesAdmin">
                     <property name="font">
                      <font>
                       <family>Calibri</family>

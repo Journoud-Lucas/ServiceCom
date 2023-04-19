@@ -40,8 +40,6 @@ void MainWindow::TableView()
          ui->tableWidgetServicesAdmin->setColumnWidth(2, 175);
          ui->tableWidgetServicesAdmin->setColumnWidth(3, 103);
 
-
-
          // Créer un nouvel élément et régler sa hauteur
          QTableWidgetItem *headerItem = new QTableWidgetItem("Nom item");
          headerItem->setSizeHint(QSize(0, 40));
@@ -81,8 +79,8 @@ int MainWindow::ConfigComboBox()
 
                 // Affichage des résultats
                 while (query.next()) {
-                     ui->comboBoxChoixService_9->addItem(query.value(0).toString());
-                     ui->comboBoxService->addItem(query.value(0).toString());
+                     ui->comboBoxServices->addItem(query.value(0).toString());
+                    ui->comboBoxServicesAdmin->addItem(query.value(0).toString());
                 }
 
             // Fermeture de la connexion
@@ -178,23 +176,20 @@ void MainWindow::PushButtonStartConfiguration()
     ui->pushButtonStart->setStyleSheet("QPushButton {background-color: #92d04f; color: white;}");
 }
 
-void MainWindow::on_comboBoxChoixService_9_currentIndexChanged(int index)
+void MainWindow::on_comboBoxServices_currentIndexChanged(int index)
 {
     ComboboxChange(index);
 }
 
 void MainWindow::ComboboxChange(int index)
 {
-
-
-
-    ui->comboBoxService->setCurrentIndex(index);
-    ui->comboBoxChoixService_9->setCurrentIndex(index);
+    ui->comboBoxServicesAdmin->setCurrentIndex(index);
+    ui->comboBoxServices->setCurrentIndex(index);
 
     if(m_serviceIsStart)
     {
                      StopSequence();
-                     UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
+                     UpdateService(ui->comboBoxServices->currentIndex()+1);
                      ResetServices();
 
     }
@@ -205,7 +200,7 @@ void MainWindow::ComboboxChange(int index)
     }
 }
 
-void MainWindow::on_comboBoxService_currentIndexChanged(int index)
+void MainWindow::on_comboBoxServicesAdmin_currentIndexChanged(int index)
 {
     ComboboxChange(index);
 }
@@ -323,7 +318,7 @@ void MainWindow::ColorRow(int row, QColor color)
 void MainWindow::ResetServices()
 {
     m_service=0;
-    UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
+    UpdateService(ui->comboBoxServices->currentIndex()+1);
     PushButtonStartConfiguration();
 }
 
@@ -353,7 +348,7 @@ void MainWindow::on_pushButtonStart_clicked()
             {
                 StopSequence();
                 ColorRow(m_service-1,QColor(146,208,79)); //Mettre la ligne en verte
-                UpdateService(ui->comboBoxChoixService_9->currentIndex()+1);
+                UpdateService(ui->comboBoxServices->currentIndex()+1);
                 ResetServices();
             }
         }
@@ -368,17 +363,14 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::UpdateSequence(int selectedSequence)
 {
     m_update=false;
-    ui->comboBoxChoixService_9->clear();
-    ui->comboBoxService->clear();
+    ui->comboBoxServices->clear();
+    ui->comboBoxServicesAdmin->clear();
     ConfigComboBox();
     m_update=true;
-    ui->comboBoxChoixService_9->setCurrentIndex(selectedSequence);
-    ui->comboBoxService->setCurrentIndex(selectedSequence);
+    ui->comboBoxServices->setCurrentIndex(selectedSequence);
+    ui->comboBoxServicesAdmin->setCurrentIndex(selectedSequence);
     UpdateService(selectedSequence+1);
 }
-
-
-
 
 void MainWindow::on_ButtonAjouter_clicked()
 {
@@ -424,13 +416,13 @@ void MainWindow::on_ButtonAjouter_clicked()
                 db.open(); // Ouvrir la base de données
 
 
-                QString queryStr = QString("INSERT INTO titem (IdItem, NameItem, Time, OrdreItem, fk_titem_tservice) VALUES(%1, '%2', %3, %4, %5)").arg(QString::number(maxIdActivite+1)).arg(lineEditNameActivite->text()).arg(QString::number(timeEdit->time().hour()*3600+timeEdit->time().minute()*60+timeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()+1)).arg(QString::number(ui->comboBoxService->currentIndex()+1));
+                QString queryStr = QString("INSERT INTO titem (IdItem, NameItem, Time, OrdreItem, fk_titem_tservice) VALUES(%1, '%2', %3, %4, %5)").arg(QString::number(maxIdActivite+1)).arg(lineEditNameActivite->text()).arg(QString::number(timeEdit->time().hour()*3600+timeEdit->time().minute()*60+timeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()+1)).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
                 qDebug()<<queryStr;
                 QSqlQuery query; // Créer un objet de type QSqlQuery
                 query.prepare(queryStr); // Préparer la requête
                 if(query.exec()){ // Executer la requête
                     qDebug() << "Nouvelle ligne ajoutée avec succès"; // Afficher un message de succès
-                    UpdateService(ui->comboBoxService->currentIndex()+1);
+                    UpdateService(ui->comboBoxServicesAdmin->currentIndex()+1);
                 }
                 else{
                     qDebug() << "Erreur lors de l'ajout d'une nouvelle ligne"; // Afficher un message d'erreur
@@ -454,7 +446,6 @@ void MainWindow::on_ButtonAjouter_clicked()
         ResizeRow();
         dialog->exec();
 }
-
 
 void MainWindow::on_ButtonModifier_clicked()
 {
@@ -518,7 +509,7 @@ void MainWindow::on_ButtonModifier_clicked()
                 if (!db.open()) {
                     qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
                 }
-                            QString queryStr = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %5 AND OrdreItem = %6").arg(lineEditNameActivite->text()).arg(QString::number(timeEdit->time().hour()*3600+timeEdit->time().minute()*60+timeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount())).arg(QString::number(ui->comboBoxService->currentIndex()+1)).arg(QString::number(ui->comboBoxService->currentIndex()+1)).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()));
+                QString queryStr = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %5 AND OrdreItem = %6").arg(lineEditNameActivite->text()).arg(QString::number(timeEdit->time().hour()*3600+timeEdit->time().minute()*60+timeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount())).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()));
                 qDebug()<<queryStr;
                             QSqlQuery query(queryStr);
                             if(!query.exec()){
@@ -535,9 +526,7 @@ void MainWindow::on_ButtonModifier_clicked()
                     db.close();
                     db.removeDatabase("QSQLITE");
                     dialog->accept();
-
-                    UpdateService(ui->comboBoxService->currentIndex()+1);
-
+                    UpdateService(ui->comboBoxServicesAdmin->currentIndex()+1);
              }
             else {
                 if (lineEditNameActivite->text().isEmpty())
@@ -549,10 +538,7 @@ void MainWindow::on_ButtonModifier_clicked()
                     QMessageBox::critical(this,tr("Erreur"), tr("Veuillez entrez un temps"));
                 }
             }
-
         });
-
-
 
         dialog->exec();
     }
@@ -586,9 +572,9 @@ void MainWindow::on_ButtonSupprimer_clicked()
             db.close();
             db.removeDatabase("QSQLITE");
         }
-                qDebug()<<QString::number(ui->comboBoxService->currentIndex()+1);
-                qDebug()<<"DELETE FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxService->currentIndex()+1)+" AND OrdreItem BETWEEN " + QString::number(firstRow+1) + " AND "+QString::number(lastRow+1);
-                QSqlQuery query("DELETE FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxService->currentIndex()+1)+" AND OrdreItem BETWEEN " + QString::number(firstRow+1) + " AND "+QString::number(lastRow+1));
+        qDebug()<<QString::number(ui->comboBoxServicesAdmin->currentIndex()+1);
+        qDebug()<<"DELETE FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)+" AND OrdreItem BETWEEN " + QString::number(firstRow+1) + " AND "+QString::number(lastRow+1);
+        QSqlQuery query("DELETE FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)+" AND OrdreItem BETWEEN " + QString::number(firstRow+1) + " AND "+QString::number(lastRow+1));
                 if(!query.exec()){
                     qDebug() << "Erreur lors de la supression du/des srvices : " << query.lastError().text() << '\n';
                     db.close();
@@ -601,7 +587,7 @@ void MainWindow::on_ButtonSupprimer_clicked()
             db.close();
             db.removeDatabase("QSQLITE");
             DecrementIdActivite();
-            UpdateService(ui->comboBoxService->currentIndex()+1);
+            UpdateService(ui->comboBoxServicesAdmin->currentIndex()+1);
     }
     else
     {
@@ -635,7 +621,7 @@ void MainWindow::DecrementIdActivite()
         }
         }
 
-        query.exec("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxService->currentIndex()+1));
+        query.exec("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
         int ordreActivite=0;
         while (query.next())
         {
@@ -644,7 +630,7 @@ void MainWindow::DecrementIdActivite()
         if (ordreActivite != currentIdOrdre)
         {
                     //L'id n'est pas le bon, on le corrige
-                    QString updateQuery = QString("UPDATE titem SET OrdreItem = %1 WHERE OrdreItem = %2 AND fk_titem_tservice = %3").arg(ordreActivite).arg(currentIdOrdre).arg(QString::number(ui->comboBoxService->currentIndex()+1));
+                    QString updateQuery = QString("UPDATE titem SET OrdreItem = %1 WHERE OrdreItem = %2 AND fk_titem_tservice = %3").arg(ordreActivite).arg(currentIdOrdre).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
                     qDebug()<<updateQuery;
                     if(!query.exec(updateQuery)){
                         qDebug() << "Erreur lors de la requête permettant de remettre en ordre l'ordre des items : " << query.lastError().text() << '\n';
@@ -720,8 +706,8 @@ void MainWindow::on_ButtonAjouterCombo_clicked()
                 query.prepare("INSERT INTO tservice (IdService, NameService) VALUES(" + QString::number(maxIdService+1) + ",'" + NameActivitelineEdit->text() + "')"); // Préparer la requête
                 if(query.exec()){ // Executer la requête
                     qDebug() << "Nouveau service ajouté avec succès"; // Afficher un message de succès
-                    UpdateSequence(ui->comboBoxService->currentIndex());
-                    ui->comboBoxService->setCurrentIndex(ui->comboBoxService->count()-1);
+                    UpdateSequence(ui->comboBoxServicesAdmin->currentIndex());
+                    ui->comboBoxServicesAdmin->setCurrentIndex(ui->comboBoxServicesAdmin->count()-1);
 
                 }
                 else{
@@ -743,19 +729,6 @@ void MainWindow::on_ButtonAjouterCombo_clicked()
 
         dialog->exec();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 void MainWindow::DecrementIdSequence()
 {
@@ -785,13 +758,10 @@ void MainWindow::DecrementIdSequence()
             db.removeDatabase("QSQLITE");
 }
 
-
-
-
 void MainWindow::on_pushButtonDeleteService_clicked()
 {
     QMessageBox::StandardButton reply;
-            reply = QMessageBox::question(nullptr, "Suppresion séquence", "Voulez-vous vraiment supprimer le service <b>"+ui->comboBoxService->currentText() +"</b> qui contient <b>" + QString::number(ui->tableWidgetServicesAdmin->rowCount())+ "</b> activités ?", QMessageBox::Yes|QMessageBox::No);
+            reply = QMessageBox::question(nullptr, "Suppresion séquence", "Voulez-vous vraiment supprimer le service <b>"+ui->comboBoxServicesAdmin->currentText() +"</b> qui contient <b>" + QString::number(ui->tableWidgetServicesAdmin->rowCount())+ "</b> activités ?", QMessageBox::Yes|QMessageBox::No);
        if (reply == QMessageBox::Yes) {
            // Le bouton "Oui" a été cliqué
            // Récupérer les plages sélectionnées
@@ -802,16 +772,16 @@ void MainWindow::on_pushButtonDeleteService_clicked()
                    qDebug() << "Erreur lors de l'ouverture de la base de données (supprimer sequence) : " << db.lastError().text() << '\n';
                    return;
                }
-               qDebug()<<QString("DELETE FROM tservice WHERE IdService = %1").arg(ui->comboBoxService->currentIndex()+1);
+               qDebug()<<QString("DELETE FROM tservice WHERE IdService = %1").arg(ui->comboBoxServicesAdmin->currentIndex()+1);
 
-                       QSqlQuery query(QString("DELETE FROM tservice WHERE IdService = %1").arg(ui->comboBoxService->currentIndex()+1));
+               QSqlQuery query(QString("DELETE FROM tservice WHERE IdService = %1").arg(ui->comboBoxServicesAdmin->currentIndex()+1));
                        if(!query.exec()){
                            qDebug() << "Erreur lors de la supression du service: " << query.lastError().text() << '\n';
                            db.close();
                            db.removeDatabase("QSQLITE");
                            return;
                        }
-                       QSqlQuery secondQuery(QString("DELETE FROM titem WHERE fk_titem_tservice = %1").arg(ui->comboBoxService->currentIndex()+1));
+                       QSqlQuery secondQuery(QString("DELETE FROM titem WHERE fk_titem_tservice = %1").arg(ui->comboBoxServicesAdmin->currentIndex()+1));
                        if(!secondQuery.exec()){
                            qDebug() << "Erreur lors de la suprression des activités liés au service supprimé: " << secondQuery.lastError().text() << '\n';
                            db.close();
@@ -821,7 +791,7 @@ void MainWindow::on_pushButtonDeleteService_clicked()
 
                        QSqlQuery thirdQuery;
                             thirdQuery.prepare("UPDATE titem SET fk_titem_tservice = fk_titem_tservice - 1 WHERE fk_titem_tservice > ?");
-                            thirdQuery.addBindValue(ui->comboBoxService->currentIndex()+1);
+                       thirdQuery.addBindValue(ui->comboBoxServicesAdmin->currentIndex()+1);
                             thirdQuery.exec();
 
 
@@ -830,7 +800,7 @@ void MainWindow::on_pushButtonDeleteService_clicked()
                    db.close();
                    db.removeDatabase("QSQLITE");
                    DecrementIdSequence();
-                   UpdateSequence(ui->comboBoxService->currentIndex()-1);
+                   UpdateSequence(ui->comboBoxServicesAdmin->currentIndex()-1);
        }
        else {
            // Le bouton "Non" a été cliqué ou la boîte de dialogue a été fermée

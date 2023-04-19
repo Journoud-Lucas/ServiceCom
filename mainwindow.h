@@ -65,14 +65,14 @@ public slots:
     void Settings();
 
 private slots:
-    void on_comboBoxChoixService_9_currentIndexChanged(int index);
+    void on_comboBoxServices_currentIndexChanged(int index);
     void on_pushButtonStart_clicked();
     void Timer();
     void ElapsedTime();
     void ResizeRow();
 
     void on_pushButton_clicked();
-    void on_comboBoxService_currentIndexChanged(int index);
+    void on_comboBoxServicesAdmin_currentIndexChanged(int index);
     void ComboboxChange(int index);
 
     void on_ButtonAjouter_clicked();

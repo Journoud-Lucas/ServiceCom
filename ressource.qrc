@@ -4,7 +4,4 @@
         <file>settings.png</file>
 	<file>house.png</file>
     </qresource>
-    <qresource prefix="/BDD">
-        <file>BDD_ServiceCom.db</file>
-    </qresource>
 </RCC>
