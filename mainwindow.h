@@ -1,23 +1,32 @@
+/********************************************************************
+    created:	2022-01-06
+    file path:	mainwindow.cpp
+    author:		Lucas Journoud
+    copyright:	W.I.P
+
+    purpose: 	dialog allowing the user to enter a new decryption key (oak files)
+*********************************************************************/
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
 #include <QtSql>
-#include <iostream>
 #include <QApplication>
 #include <QPushButton>
-#include <QFile>
-#include <QFileDialog>
 #include <QLineEdit>
 #include <QMessageBox>
-#include <QStandardItemModel>
 #include <QTextToSpeech>
-#include <regex>
-#include <QTableWidget>
 #include <QTimeEdit>
 
-namespace Ui {
-class MainWindow;
+const QColor COLOR_RED = QColor(237, 28, 36);
+const QColor COLOR_GREEN = QColor(146,208,79);
+const QColor COLOR_ORANGE = QColor(255, 165, 0);
+
+
+namespace Ui
+{
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
@@ -27,59 +36,61 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void ShowAdministratorInterface();
     void CloseButtonConfiguration();
     void SettingsButtonConfiguration();
-    void PushButtonStartConfiguration();
-    int ConfigComboBox();
+    void StartButtonConfiguration();
+    void ConfigComboBox();
     void InitialConfiguration();
-    int UpdateService(int index);
-    bool initialConfigurationIsDone();
-    void StartSequence();
+    void UpdateActivity(int nIndexOfServices_in);
+    void UpdateServices(int nSelectedServices_in);
+    void StartServices();
     void TableView();
-    void ColorRow(int row, QColor);
+    void ColorRow(int nRow_in, QColor color_in);
     void ReadServices();
+    void StopServices();
     void ResetServices();
-    void StopSequence();
-    void UpdateSequence(int selectedSequence);
-    void DecrementIdActivite();
-    void DecrementIdSequence();
-    void ChangeLastSelectedIndexService(int index);
-    int GetSelectedIndexService();
+    void ReorganizesIdActivity();
+    void ReorganizesIdServices();
+    void ChangeLastSelectedIndexService(int nIndex_in);
+    int GetLastSelectedIndexService();
+    QString GetPasswordOfArhm();
+    QByteArray HashingAndSalling(QString sTextToHash, quint32 saltValue);
 
 private:
     Ui::MainWindow *ui;
-    QTextToSpeech *m_engine;
-    QSqlDatabase *m_db;
-    bool initialConfigurationDone;
-    int m_service;
-    QTimer *m_timerNextSequence;
-    QTimer *m_timerSeconds;
-    int m_secondsRemaining;
-    bool m_serviceIsStart;
-    QString m_databasePath;
-    bool m_update;
+    QTextToSpeech *m_pEngine;
+    QRegExpValidator *m_pValidatorName;
+    QTimer *m_pTimerNextSequence;
+    QTimer *m_pTimerSeconds;
+    QString m_sDatabasePath;
+    bool m_bInitialConfigurationIsDone;
+    bool m_bServiceIsStart;
+    bool m_bUpdate;
+    int m_nSecondsRemaining;
+    int m_nService;
 
-
-public slots:
-    void Settings();
 
 private slots:
-    void on_comboBoxServices_currentIndexChanged(int index);
-    void on_pushButtonStart_clicked();
+    //Activity button
+    void on_pushButtonAddActivity_clicked();
+    void on_pushButtonModifyActivity_clicked();
+    void on_pushButtonDeleteActivity_clicked();
+    //Service button
+    void on_pushButtonAddService_clicked();
+    void on_pushButtonDeleteService_clicked();
+    //Other button
+    void on_pushButtonStartService_clicked();
+    void on_pushButtonGoToMainWindow_clicked();
+    //Index change
+    void on_comboBoxServicesAdmin_currentIndexChanged(int nIndex_in);
+    void on_comboBoxServices_currentIndexChanged(int nIndex_in);
+    void ComboboxIndexChange(int nIndex_in);
+    //Timer
     void Timer();
     void ElapsedTime();
+    //Other
     void ResizeRow();
-
-    void on_pushButton_clicked();
-    void on_comboBoxServicesAdmin_currentIndexChanged(int index);
-    void ComboboxChange(int index);
-
-    void on_ButtonAjouter_clicked();
-    void on_ButtonModifier_clicked();
-    void on_ButtonSupprimer_clicked();
-    void on_ButtonAjouterCombo_clicked();
-    void on_pushButtonDeleteService_clicked();
+    void Settings();
 };
 
 #endif // MAINWINDOW_H
