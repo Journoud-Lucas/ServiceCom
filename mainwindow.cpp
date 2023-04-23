@@ -1,5 +1,6 @@
 /********************************************************************
     created:	2022-01-06
+    last update: 2022-04-23
     file path:	mainwindow.cpp
     author:		Lucas Journoud
     copyright:	W.I.P
@@ -8,6 +9,11 @@
     - Possibility to display the different services and their activities.
     - Possibility to launch a service.
     - Administrator interface allowing to modify the database associated to the service and activity
+
+    todo:
+    - increases the size of QLabel, QLineEdit and QPushButton
+    - change the icon of the application
+    - ctrl + f: W.I.P
 *********************************************************************/
 
 #include "mainwindow.h"
@@ -38,22 +44,21 @@ MainWindow::~MainWindow()
  */
 void MainWindow::TableView()
 {
+    //TableWidget
     ui->tableWidgetServices->setColumnCount(2);
     ui->tableWidgetServices->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    // set background and text color
     ui->tableWidgetServices->setShowGrid(false);
     ui->tableWidgetServices->setColumnWidth(0, 1141);
     ui->tableWidgetServices->setColumnWidth(1, 450);
+    //TableWidgetServicesAdmin
     ui->tableWidgetServicesAdmin->setColumnCount(2);
     ui->tableWidgetServicesAdmin->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    // set background and text color
     ui->tableWidgetServicesAdmin->setShowGrid(false);
     ui->tableWidgetServicesAdmin->setColumnWidth(0, 1200);
-    ui->tableWidgetServicesAdmin->setColumnWidth(1, 250);
-    // Créer un nouvel élément et régler sa hauteur
-    QTableWidgetItem *pHeaderItem = new QTableWidgetItem("Nom item");
+    ui->tableWidgetServicesAdmin->setColumnWidth(1, 300);
+    //Create a new element and set its height
+    QTableWidgetItem *pHeaderItem = new QTableWidgetItem("Nom de l'activité");
     pHeaderItem->setSizeHint(QSize(0, 40));
-    // Régler l'élément comme horizontal header
     ui->tableWidgetServicesAdmin->setHorizontalHeaderItem(0, pHeaderItem);
 }
 
@@ -62,12 +67,9 @@ void MainWindow::TableView()
  */
 void MainWindow::ResizeRow()
 {
-    for(int nNumberOfRow=0; nNumberOfRow<ui->tableWidgetServices->rowCount(); nNumberOfRow++)
+    for(int nNumberOfRow=0; nNumberOfRow<ui->tableWidgetServices->rowCount(); nNumberOfRow++) //Browse each line
     {
         ui->tableWidgetServices->resizeRowToContents(nNumberOfRow);
-    }
-    for(int nNumberOfRow=0; nNumberOfRow<ui->tableWidgetServicesAdmin->rowCount(); nNumberOfRow++)
-    {
         ui->tableWidgetServicesAdmin->resizeRowToContents(nNumberOfRow);
     }
 }
@@ -77,27 +79,31 @@ void MainWindow::ResizeRow()
  */
 void MainWindow::ConfigComboBox()
 {
+    //Preparation of the database
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
-    if (!db.open())
+    if (!db.open()) //Try to open the database
     {
-        qDebug() << "Erreur lors de l'ouverture de la base de données (config combobox) : " << db.lastError().text() << '\n';
+        qDebug() << "Error when opening the database, ConfigComboBox : " << db.lastError().text() << '\n';
+        db.removeDatabase("QSQLITE");
         return;
     }
     QSqlQuery query("SELECT NameService FROM tservice");
-    if(!query.exec())
+    if(!query.exec()) //Try to execute the query
     {
-        qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+        qDebug() << "Error during the execution of the request, ConfigComboBox : " << query.lastError().text() << '\n';
+        //Closing the connection
         db.close();
+        db.removeDatabase("QSQLITE");
         return;
     }
-    // Affichage des résultats
+    //Display of results
     while (query.next())
     {
         ui->comboBoxServices->addItem(query.value(0).toString());
         ui->comboBoxServicesAdmin->addItem(query.value(0).toString());
     }
-    // Fermeture de la connexion
+    //Closing the connection
     db.close();
     db.removeDatabase("QSQLITE");
     return;
@@ -108,10 +114,10 @@ void MainWindow::ConfigComboBox()
  */
 void MainWindow::CloseButtonConfiguration()
 {
-    //bouton fermer
     ui->pushButtonClose->setIcon(QIcon(QPixmap(":/images/close.png")));
     ui->pushButtonClose->setIconSize(QSize(75,75));
     ui->pushButtonClose->setFlat(true);
+    //Exit the application by pressing
     QObject::connect(ui->pushButtonClose, &QPushButton::clicked, &QApplication::quit);
 }
 
@@ -123,6 +129,7 @@ void MainWindow::SettingsButtonConfiguration()
     ui->pushButtonSettings->setIcon(QIcon(QPixmap(":/images/settings.png")));
     ui->pushButtonSettings->setIconSize(QSize(75,75));
     ui->pushButtonSettings->setFlat(true);
+    //Goes to the admin interface when you click on the button and enter the correct password
     QObject::connect(ui->pushButtonSettings, &QPushButton::clicked, this, &MainWindow::Settings);
 }
 
@@ -131,10 +138,11 @@ void MainWindow::SettingsButtonConfiguration()
  */
 void MainWindow::Settings()
 {
-    //Hashache et salage (salage générer aléatoirement) du mot de passe
+    //Hash and salt (randomly generated salt) of the password
     QRandomGenerator generator;
     quint32 saltValue = generator.generate();
     QByteArray hashedPassword = HashingAndSalling(GetPasswordOfArhm(), saltValue);
+    //Configure the window to enter the password
     QDialog *pDialogPassword = new QDialog(this);
     QVBoxLayout *pMainLayoutDialogPassword = new QVBoxLayout(pDialogPassword);
     QLabel *pLabelPassword = new QLabel("Entrez le mot de passe :");
@@ -146,21 +154,22 @@ void MainWindow::Settings()
     pMainLayoutDialogPassword->addWidget(pOkButtonPassword);
     pMainLayoutDialogPassword->addWidget(pCancelButtonPassword);
     pDialogPassword->setLayout(pMainLayoutDialogPassword);
-    pDialogPassword->connect(pCancelButtonPassword, &QPushButton::clicked, [&]()
+    pDialogPassword->connect(pCancelButtonPassword, &QPushButton::clicked, this, [&, pDialogPassword]() //When you click on the cancel button
     {
         pDialogPassword->reject();
     });
-    pDialogPassword->connect(pOkButtonPassword, &QPushButton::clicked, [&]() //When validation button was pressed
+    pDialogPassword->connect(pOkButtonPassword, &QPushButton::clicked, this, [&, pLineEditPassword,saltValue,hashedPassword,pDialogPassword]() //When you click on the ok button
     {
-        //Hashage du text
+        //Hash of the entered text
         QString sEntryText = pLineEditPassword->text().toLower();
         QByteArray hashedEnterText = HashingAndSalling(sEntryText, saltValue);
 
-        if(hashedEnterText==hashedPassword) { //Corect password
+        if(hashedEnterText==hashedPassword) //If the password entered is correct
+        {
             pDialogPassword->accept();
             ui->stackedWidget->setCurrentIndex(1);
         }
-        else //Incorrect Password
+        else //If the password entered is incorrect
         {
             QMessageBox::critical(this, tr("Erreur"), tr("Le mot de passe entré est incorect.\nVeuillez réessayez"));
         }
@@ -188,8 +197,8 @@ QByteArray MainWindow::HashingAndSalling(QString sTextToHash, quint32 saltValue)
  */
 void MainWindow::InitialConfiguration()
 {
-    showFullScreen();
     m_bInitialConfigurationIsDone=false;
+    showFullScreen();
     m_bUpdate=true;
     m_bServiceIsStart=false;
     m_pValidatorName = new QRegExpValidator(QRegExp("[A-Za-z0-9 éèêàâæçôöùûüïî!?.,]*"));
@@ -199,13 +208,11 @@ void MainWindow::InitialConfiguration()
     TableView();
     #if _WIN32 //Window 32 and 64bit
         m_sDatabasePath="D://Users//Warp//Documents//arhm//BDD_ServiceCom.db";
-    #elif __ANDROID__ // for Android device
+    #elif __ANDROID__ //Android device
         m_databasePath="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
-    #elif __APPLE__ //All apple device (use for ios)
-        m_databasePath="W.I.P";
     #endif
     UpdateServices(GetLastSelectedIndexService());
-    m_pEngine= new QTextToSpeech;
+    m_pEngine = new QTextToSpeech;
     m_bServiceIsStart=false;
     ui->stackedWidget->setCurrentIndex(0); //show the MainWindow
     m_bInitialConfigurationIsDone=true;
@@ -246,13 +253,12 @@ void MainWindow::ComboboxIndexChange(int nIndex_in)
 {
     ui->comboBoxServicesAdmin->setCurrentIndex(nIndex_in);
     ui->comboBoxServices->setCurrentIndex(nIndex_in);
-    if(m_bServiceIsStart)
+    if(m_bServiceIsStart) //If a service is started
     {
         StopServices();
-        UpdateActivity(ui->comboBoxServices->currentIndex()+1);
         ResetServices();
     }
-    if(m_bInitialConfigurationIsDone&&m_bUpdate)
+    if(m_bInitialConfigurationIsDone&&m_bUpdate) //If the initial configuration is completed and the update of the services enabled
     {
         UpdateActivity(nIndex_in+1);
         ChangeLastSelectedIndexService(nIndex_in);
@@ -264,24 +270,28 @@ void MainWindow::ComboboxIndexChange(int nIndex_in)
  * \param IndexNombre_in The index of the service to be updated
  */
 void MainWindow::UpdateActivity(int nIndexOfServices_in)
-{
+{ 
     ui->tableWidgetServices->setRowCount(0);
     ui->tableWidgetServicesAdmin->setRowCount(0);
+    //Preparation of the database
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
-    if (!db.open())
+    if (!db.open()) //Try to open the database
     {
-        qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
+        qDebug() << "Error when opening the database, UpdateActivity : " << db.lastError().text() << '\n';
+        db.removeDatabase("QSQLITE");
         return;
     }
     QSqlQuery query("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(nIndexOfServices_in));
-    if(!query.exec())
+    if(!query.exec()) //Try to execute the query
     {
-        qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+        qDebug() << "Error during the execution of the request, UpdateActivity : " << query.lastError().text() << '\n';
+        //Closing the connection
         db.close();
+        db.removeDatabase("QSQLITE");
         return;
     }
-    // Affichage des résultats
+    //Display of results
     while (query.next())
     {
         ui->tableWidgetServices->setRowCount((ui->tableWidgetServices->rowCount())+1);
@@ -292,8 +302,10 @@ void MainWindow::UpdateActivity(int nIndexOfServices_in)
         ui->tableWidgetServices->setItem(query.value(3).toInt()-1,1,new QTableWidgetItem(sTimeHoursMinutesSeconds)); //TempHeureMinuteSeconde
         ui->tableWidgetServicesAdmin->setItem(query.value(3).toInt()-1,1,new QTableWidgetItem(sTimeHoursMinutesSeconds)); //TempHeureMinuteSeconde
     }
+    //Closing the connection
     db.close();
     db.removeDatabase("QSQLITE");
+    //Resize the Row
     ResizeRow();
     return;
 }
@@ -305,14 +317,15 @@ void MainWindow::StartServices()
 {
     ui->pushButtonStartService->setStyleSheet("QPushButton {background-color: orange; color: white;}");
     ui->pushButtonStartService->setText("Continuer");
-    // Timer pour le décompte
     m_pTimerNextSequence = new QTimer();
     m_pTimerSeconds = new QTimer();
+    //When the service time is over
     m_pTimerNextSequence->connect(m_pTimerNextSequence, &QTimer::timeout, this, &MainWindow::ElapsedTime);
+    //Every second
     m_pTimerSeconds->connect(m_pTimerSeconds, &QTimer::timeout, this, &MainWindow::Timer);
-    // Définir le timer pour exécuter la fonction toutes les 60 secondes
+    //Launch timers
     m_pTimerNextSequence->start(0);
-    m_pTimerSeconds->start(1000);
+    m_pTimerSeconds->start(0);
 }
 
 /*!
@@ -320,6 +333,7 @@ void MainWindow::StartServices()
  */
 void MainWindow::Timer()
 {
+    m_pTimerSeconds->setInterval(1000);
     m_nSecondsRemaining--;
     ui->tableWidgetServices->item(m_nService-1,1)->setText(QString("%1h %2m %3s").arg(m_nSecondsRemaining/3600).arg((m_nSecondsRemaining%3600)/60).arg(m_nSecondsRemaining%60));
 }
@@ -327,22 +341,22 @@ void MainWindow::Timer()
 /*!
  * \brief MainWindow::ElapsedTime Call function when the service time is over. Allows you to move to the next activity and turn your current line red
  */
-void MainWindow::ElapsedTime() //Si le temps est écouler
+void MainWindow::ElapsedTime() //If the time is over
 {
-    if(m_nService<=ui->tableWidgetServices->rowCount()-1) //Si la séquence n'est pas finie
+    if(m_nService<=ui->tableWidgetServices->rowCount()-1) //If the service is not finished
     {
         if(m_nService!=0)
         {
-            ColorRow(m_nService-1,COLOR_RED); //Mettre la ligne en rouge
-            ui->tableWidgetServices->item(m_nService-1,1)->setText("0h 0m 0s"); //Mettre le temps a 0
+            ColorRow(m_nService-1,COLOR_RED);
+            ui->tableWidgetServices->item(m_nService-1,1)->setText("0h 0m 0s");
         }
         ReadServices();
     }
-    else //Si la dernière ligne de la séquence est atteinte
+    else //If the last service activity is reached
     {
         StopServices();
-        ColorRow(m_nService-1,COLOR_RED); //Mettre la ligne en rouge
-        ui->tableWidgetServices->item(m_nService-1,1)->setText("0h 0m 0s"); //Mettre le temps a 0s
+        ColorRow(m_nService-1,COLOR_RED);
+        ui->tableWidgetServices->item(m_nService-1,1)->setText("0h 0m 0s");
         ResetServices();
     }
 }
@@ -354,7 +368,7 @@ void MainWindow::ReadServices()
 {    
     ColorRow(m_nService, COLOR_ORANGE); //Color actual row in orange
     m_pEngine->say(ui->tableWidgetServices->item(m_nService,0)->text()); //Say the actual row
-    QString sTimeToSplit = ui->tableWidgetServices->item(m_nService,1)->text(); //Split hours, minutes and seconds into 2 int
+    QString sTimeToSplit = ui->tableWidgetServices->item(m_nService,1)->text(); //Split hours, minutes and seconds into 3 int
     QStringList timeParts = sTimeToSplit.split(" ");
     int nHours = timeParts[0].remove("h").toInt();
     int nMinutes = timeParts[1].remove("m").toInt();
@@ -372,7 +386,7 @@ void MainWindow::ReadServices()
  */
 void MainWindow::ColorRow(int nRow_in, QColor color_in)
 {
-    for(int nCurrentColumn=0;nCurrentColumn<ui->tableWidgetServices->columnCount();nCurrentColumn++)
+    for(int nCurrentColumn=0;nCurrentColumn<ui->tableWidgetServices->columnCount();nCurrentColumn++) //All the cells of the column
     {
         QTableWidgetItem *pItem = ui->tableWidgetServices->item(nRow_in, nCurrentColumn);
         pItem->setBackground(QBrush(color_in));
@@ -394,7 +408,7 @@ void MainWindow::ResetServices()
  */
 void MainWindow::StopServices()
 {
-    m_pTimerNextSequence->stop(); //Arreter la sequence
+    m_pTimerNextSequence->stop();
     m_pTimerSeconds->stop();
     m_bServiceIsStart=false;
 }
@@ -404,24 +418,24 @@ void MainWindow::StopServices()
  */
 void MainWindow::on_pushButtonStartService_clicked()
 {
-    if(ui->tableWidgetServices->rowCount()!=0)
+    if(ui->tableWidgetServices->rowCount()!=0) //If there is at least 1 activity in the department
     {
-        if(!m_bServiceIsStart)
+        if(!m_bServiceIsStart) //If the service is not started
         {
             m_bServiceIsStart=true;
             StartServices();
         }
-        else
+        else //If the service is started
         {
-            if(m_nService<=ui->tableWidgetServices->rowCount()-1) //Si la séquence n'est pas finie
+            if(m_nService<=ui->tableWidgetServices->rowCount()-1) //If the service is not finished
             {
                 ReadServices();
-                ColorRow(m_nService-2,COLOR_GREEN); //Mettre la ligne en verte
+                ColorRow(m_nService-2,COLOR_GREEN);
             }
-            else //Si la dernière ligne est atteinte
+            else //If the last line is reached
             {
                 StopServices();
-                ColorRow(m_nService-1,COLOR_GREEN); //Mettre la ligne en verte
+                ColorRow(m_nService-1,COLOR_GREEN);
                 UpdateActivity(ui->comboBoxServices->currentIndex()+1);
                 ResetServices();
             }
@@ -458,74 +472,110 @@ void MainWindow::UpdateServices(int nSelectedSequence_in)
  */
 void MainWindow::on_pushButtonAddActivity_clicked()
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(m_sDatabasePath);
-    db.open();
-    int nMaxIdActivite = 0;
-    QSqlQuery query;
-    query.prepare("SELECT MAX(IdItem) FROM titem");
-    if (query.exec())
+    int nMaxIdActivity= GetMaxIdActivity();
+
+    QDialog *pDialog = new QDialog(this);
+    pDialog->setWindowTitle("Ajouter une activité");
+    QVBoxLayout *mainLayout = new QVBoxLayout(pDialog);
+    QLabel *pLabelNameActivity = new QLabel("Nom d'activité :");
+    QLineEdit *pLineEditNameActivity = new QLineEdit;
+    pLineEditNameActivity->setValidator(m_pValidatorName);
+    QPushButton *pOkButton = new QPushButton("OK");
+    QLabel *pLabelTime = new QLabel("Temps:");
+    QTimeEdit *pTimeEdit = new QTimeEdit;
+    pTimeEdit->setDisplayFormat("hh:mm:ss");
+    mainLayout->addWidget(pLabelNameActivity);
+    mainLayout->addWidget(pLineEditNameActivity);
+    mainLayout->addWidget(pLabelTime);
+    mainLayout->addWidget(pTimeEdit);
+    mainLayout->addWidget(pOkButton);
+    pDialog->connect(pOkButton, &QPushButton::clicked, pDialog,[&,pLineEditNameActivity, pTimeEdit, nMaxIdActivity]() //When validation button was pressed
     {
-        if (query.next())
+        if (!pLineEditNameActivity->text().isEmpty()&&pTimeEdit->time().toString()!="00:00:00") //If the user has entered an activity name and a time
         {
-            nMaxIdActivite = query.value(0).toInt();
-        }
-    }
-    db.close();
-    QDialog *dialog = new QDialog(this);
-    dialog->setWindowTitle("Ajouter une activité");
-    QVBoxLayout *mainLayout = new QVBoxLayout(dialog);
-    QLabel *labelNameActivity = new QLabel("Nom d'activité :");
-    QLineEdit *lineEditNameActivite = new QLineEdit;
-    lineEditNameActivite->setValidator(m_pValidatorName);
-    QPushButton *okButton = new QPushButton("OK");
-    QLabel *labelTime = new QLabel("Temps:");
-    QTimeEdit *timeEdit = new QTimeEdit;
-    timeEdit->setDisplayFormat("hh:mm:ss");
-    mainLayout->addWidget(labelNameActivity);
-    mainLayout->addWidget(lineEditNameActivite);
-    mainLayout->addWidget(labelTime);
-    mainLayout->addWidget(timeEdit);
-    mainLayout->addWidget(okButton);
-    dialog->connect(okButton, &QPushButton::clicked, [&]() //When validation button was pressed
-    {
-        if (!lineEditNameActivite->text().isEmpty()&&timeEdit->time().toString()!="00:00:00")
-        {
-            dialog->accept();
-            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE"); // Définir le type de la base de donnée
-            db.setDatabaseName(m_sDatabasePath); // Assigner le chemin à la variable de la base de donnée
-            db.open(); // Ouvrir la base de données
-            QString sQuery = QString("INSERT INTO titem (IdItem, NameItem, Time, OrdreItem, fk_titem_tservice) VALUES(%1, '%2', %3, %4, %5)").arg(QString::number(nMaxIdActivite+1)).arg(lineEditNameActivite->text()).arg(QString::number(timeEdit->time().hour()*3600+timeEdit->time().minute()*60+timeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()+1)).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
-            qDebug()<<sQuery;
-            QSqlQuery query; // Créer un objet de type QSqlQuery
-            query.prepare(sQuery); // Préparer la requête
-            if(query.exec()) // Executer la requête
+            pDialog->accept();
+            //Preparation of the database
+            QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+            db.setDatabaseName(m_sDatabasePath);
+            if (!db.open()) //Try to open the database
             {
-                qDebug() << "Nouvelle ligne ajoutée avec succès"; // Afficher un message de succès
-                UpdateActivity(ui->comboBoxServicesAdmin->currentIndex()+1);
+                qDebug() << "Error when opening the database, AddActivity : " << db.lastError().text() << '\n';
+                db.removeDatabase("QSQLITE");
+                return;
             }
-            else
+            //QString sQuery = QString("INSERT INTO titem (IdItem, NameItem, Time, OrdreItem, fk_titem_tservice) VALUES(%1, '%2', %3, %4, %5)").arg(QString::number(nMaxIdActivity+1)).arg(pLineEditNameActivity->text()).arg(QString::number(pTimeEdit->time().hour()*3600+pTimeEdit->time().minute()*60+pTimeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()+1)).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
+            QString sQuery = QString("INSERT INTO titem (IdItem, NameItem, Time, OrdreItem, fk_titem_tservice) VALUES(%1, '%2', %3, %4, %5)")
+                                 .arg(QString::number(nMaxIdActivity+1),
+                                      pLineEditNameActivity->text(),
+                                      QString::number(pTimeEdit->time().hour()*3600+pTimeEdit->time().minute()*60+pTimeEdit->time().second()),
+                                      QString::number(ui->tableWidgetServicesAdmin->rowCount()+1),QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
+            QSqlQuery query; //W.I.P
+            query.prepare(sQuery);
+            if(!query.exec()) //Try to execute the query
             {
-                qDebug() << "Erreur lors de l'ajout d'une nouvelle ligne"; // Afficher un message d'erreur
+                qDebug() << "Error during the execution of the request, AddActivity : " << query.lastError().text() << '\n';
+                //Closing the connection
+                db.close();
+                db.removeDatabase("QSQLITE");
+                return;
             }
-            db.close(); // Fermer la base de données
+            UpdateActivity(ui->comboBoxServicesAdmin->currentIndex()+1);
+            //Closing the connection
+            db.close();
             db.removeDatabase("QSQLITE");
         }
         else
         {
-            if (lineEditNameActivite->text().isEmpty())
+            if (pLineEditNameActivity->text().isEmpty()) //If the user has not entered an activity name
             {
                 QMessageBox::critical(this,tr("Erreur"), tr("Veuillez entrez un nom d'activité"));
             }
-            if (timeEdit->time().toString()=="00:00:00")
+            if (pTimeEdit->time().toString()=="00:00:00") //If the user has not entered any time
             {
                 QMessageBox::critical(this,tr("Erreur"), tr("Veuillez entrez un temps pour l'activité"));
             }
         }
     });
     ResizeRow();
-    dialog->exec();
+    pDialog->exec();
 }
+
+/*!
+ * \brief MainWindow::GetMaxIdActivity Function that returns the maximum id of the activities
+ * \return The maximum id of the activities
+ */
+int MainWindow::GetMaxIdActivity()
+{
+    int nMaxIdActivity = 0;
+    //Preparation of the database
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(m_sDatabasePath);
+    if (!db.open()) //Try to open the database
+    {
+        qDebug() << "Error when opening the database, GetMaxIdActivity : " << db.lastError().text() << '\n';
+        db.removeDatabase("QSQLITE");
+        return 1;
+    }
+    QSqlQuery query("SELECT MAX(IdItem) FROM titem");
+    if(!query.exec()) //Try to execute the query
+    {
+        qDebug() << "Error during the execution of the request, GetMaxIdActivity : " << query.lastError().text() << '\n';
+        //Closing the connection
+        db.close();
+        return 1;
+    }
+    //Take the results
+    if (query.next())
+    {
+        nMaxIdActivity = query.value(0).toInt();
+    }
+    //Closing the connection
+    db.close();
+    db.removeDatabase("QSQLITE");
+    //return the max id activity
+    return nMaxIdActivity;
+}
+
 
 /*!
  * \brief MainWindow::on_pushButtonModifyActivity_clicked Allows you to modify the selected activity
@@ -536,7 +586,7 @@ void MainWindow::on_pushButtonModifyActivity_clicked()
     int nNumberOfRow=0;
     int nFirstRow;
     int nLastRow;
-    if(!selectionRanges.isEmpty())
+    if(!selectionRanges.isEmpty()) //If the user has selected the right lines
     {
         // Récupérer le numéro de ligne de la première case sélectionnée
         nFirstRow = selectionRanges.first().topRow();
@@ -545,76 +595,79 @@ void MainWindow::on_pushButtonModifyActivity_clicked()
         nNumberOfRow=nLastRow-nFirstRow;
         nNumberOfRow++;
     }
-    if(selectionRanges.isEmpty())
+    if(selectionRanges.isEmpty()) //If the user has not selected any lines
     {
         QMessageBox::critical(this,tr("Erreur"), tr("Veuillez séléctionnez une ligne a modifier"));
     }
-    else if(nNumberOfRow==1)
+    else if(nNumberOfRow==1) //If the user has selected only one line
     {
-        QDialog *dialog = new QDialog(this);
-        dialog->setWindowTitle("Modifier une activité");
-        QVBoxLayout *mainLayout = new QVBoxLayout(dialog);
-        QLabel *labelNameActivity = new QLabel("Nom d'activité :");
-        QLineEdit *lineEditNameActivite = new QLineEdit(ui->tableWidgetServicesAdmin->item(ui->tableWidgetServicesAdmin->selectedRanges().first().topRow(),0)->text()); //nameActivite
-        QLabel *labelTimeEdit = new QLabel("Temps (hh:mm:ss)");
-        QString sTime = ui->tableWidgetServicesAdmin->item(ui->tableWidgetServicesAdmin->selectedRanges().first().topRow(), 1)->text();
+        //Initialization of the dialog window
+        QDialog *pDialog = new QDialog(this);
+        pDialog->setWindowTitle("Modifier une activité");
+        QVBoxLayout *pMainLayout = new QVBoxLayout(pDialog);
+        QLabel *pLabelNameActivity = new QLabel("Nom d'activité :");
+        QLineEdit *pLineEditNameActivite = new QLineEdit(ui->tableWidgetServicesAdmin->item(nFirstRow,0)->text()); //nameActivite
+        QLabel *pLabelTimeEdit = new QLabel("Temps (hh:mm:ss)");
+        QString sTime = ui->tableWidgetServicesAdmin->item(nFirstRow, 1)->text();
         QStringList timeSplit = sTime.split(' ');
         int hours = timeSplit[0].split('h')[0].toInt();
         int minutes = timeSplit[1].split('m')[0].toInt();
         int seconds = timeSplit[2].split('s')[0].toInt();
-        QTimeEdit *timeEdit = new QTimeEdit(QTime(hours, minutes, seconds));
+        QTimeEdit *pTimeEdit = new QTimeEdit(QTime(hours, minutes, seconds));
         //QTimeEdit *timeEdit = new QTimeEdit;
-        timeEdit->setDisplayFormat("hh:mm:ss");
-        QPushButton *okButton = new QPushButton("OK");
-        lineEditNameActivite->setValidator(m_pValidatorName);
-        mainLayout->addWidget(labelNameActivity);
-        mainLayout->addWidget(lineEditNameActivite);
-        mainLayout->addWidget(labelTimeEdit);
-        mainLayout->addWidget(timeEdit);
-        mainLayout->addWidget(okButton);
-        dialog->setLayout(mainLayout);
-        dialog->connect(okButton, &QPushButton::clicked, [&]() //When validation button was pressed
+        pTimeEdit->setDisplayFormat("hh:mm:ss");
+        QPushButton *pOkButton = new QPushButton("OK");
+        pLineEditNameActivite->setValidator(m_pValidatorName);
+        pMainLayout->addWidget(pLabelNameActivity);
+        pMainLayout->addWidget(pLineEditNameActivite);
+        pMainLayout->addWidget(pLabelTimeEdit);
+        pMainLayout->addWidget(pTimeEdit);
+        pMainLayout->addWidget(pOkButton);
+        pDialog->setLayout(pMainLayout);
+        pDialog->connect(pOkButton, &QPushButton::clicked, pDialog,[&, pLineEditNameActivite, pTimeEdit]() //When validation button was pressed
         {
-            if (!lineEditNameActivite->text().isEmpty()&&timeEdit->time().toString()!="00:00:00")
+            if (!pLineEditNameActivite->text().isEmpty()&&pTimeEdit->time().toString()!="00:00:00") //If the user has entered a text and a time
             {
+                //Preparation of the database
                 QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
                 db.setDatabaseName(m_sDatabasePath);
-                if (!db.open())
+                if (!db.open()) //Try to open the database
                 {
-                    qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
+                    qDebug() << "Error when opening the database, ModifyActivity : " << db.lastError().text() << '\n';
+                    return;
                 }
-                QString sQuery = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %5 AND OrdreItem = %6").arg(lineEditNameActivite->text()).arg(QString::number(timeEdit->time().hour()*3600+timeEdit->time().minute()*60+timeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount())).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()));
-                qDebug()<<sQuery;
+                QString sQuery = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %5 AND OrdreItem = %6").arg(pLineEditNameActivite->text()).arg(QString::number(pTimeEdit->time().hour()*3600+pTimeEdit->time().minute()*60+pTimeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount())).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()));
                 QSqlQuery query(sQuery);
-                if(!query.exec())
+                if(!query.exec()) //Try to execute the query
                 {
-                    qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+                    qDebug() << "Error during the execution of the request, ModifyActivity : " << query.lastError().text() << '\n';
+                    //Closing the connection
+                    db.close();
+                    db.removeDatabase("QSQLITE");
+                    return;
                 }
-                else
-                {
-                    qDebug() << "Ligne mis a jour avec succès" << '\n';
-                }
-                // Fermeture de la connexion
+                //Closing the connection
                 db.close();
                 db.removeDatabase("QSQLITE");
-                dialog->accept();
+                //Close the window and update the TableWidget
+                pDialog->accept();
                 UpdateActivity(ui->comboBoxServicesAdmin->currentIndex()+1);
             }
             else
             {
-                if (lineEditNameActivite->text().isEmpty())
+                if (pLineEditNameActivite->text().isEmpty()) //If the user has not entered any text for the activity name
                 {
                     QMessageBox::critical(this,tr("Erreur"), tr("Veuillez entrez un nom d'activité"));
                 }
-                if (timeEdit->time().toString()=="00:00:00")
+                if (pTimeEdit->time().toString()=="00:00:00") //If the user has not entered any time
                 {
                     QMessageBox::critical(this,tr("Erreur"), tr("Veuillez entrez un temps"));
                 }
             }
         });
-        dialog->exec();
+        pDialog->exec();
     }
-    else
+    else //If the user has selected more than one line to modify
     {
         QMessageBox::critical(this,tr("Erreur"), tr("Veuillez ne séléctionnez qu'une seule ligne a modifier"));
     }
@@ -625,41 +678,36 @@ void MainWindow::on_pushButtonModifyActivity_clicked()
  */
 void MainWindow::on_pushButtonDeleteActivity_clicked()
 {
-    // Récupérer les plages sélectionnées
+    //Retrieve the selected ranges
     QList<QTableWidgetSelectionRange> selectionRanges = ui->tableWidgetServicesAdmin->selectedRanges();
-    if(!selectionRanges.isEmpty())
+    if(!selectionRanges.isEmpty()) //If the user has selected lines
     {
-        // Récupérer le numéro de ligne de la première case sélectionnée
+        //Retrieve the line number of the first selected box
         int nFirstRow = selectionRanges.first().topRow();
-        // Récupérer le numéro de ligne de la dernière case sélectionnée
+        //Retrieve the line number of the last selected box
         int nLastRow = selectionRanges.last().bottomRow();
-        qDebug() << "1st row: " <<nFirstRow << " last row: "<< nLastRow;
+        //Preparation of the database
         QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
         db.setDatabaseName(m_sDatabasePath);
-        if (!db.open())
+        if (!db.open()) //Try to open the database
         {
-            qDebug() << "Erreur lors de l'ouverture de la base de données (update service) : " << db.lastError().text() << '\n';
+            qDebug() << "Error when opening the database, DeleteActivity : " << db.lastError().text() << '\n';
+            db.removeDatabase("QSQLITE");
             return;
         }
-        if (!db.isOpen())
-        {
-            qDebug() << "La connexion à la base de données n'est pas ouverte. "<<db.lastError().text();
-            db.close();
-            db.removeDatabase("QSQLITE");
-        }
-        qDebug()<<QString::number(ui->comboBoxServicesAdmin->currentIndex()+1);
-        qDebug()<<"DELETE FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)+" AND OrdreItem BETWEEN " + QString::number(nFirstRow+1) + " AND "+QString::number(nLastRow+1);
         QSqlQuery query("DELETE FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)+" AND OrdreItem BETWEEN " + QString::number(nFirstRow+1) + " AND "+QString::number(nLastRow+1));
-        if(!query.exec())
+        if(!query.exec()) //Try to execute the query
         {
-            qDebug() << "Erreur lors de la supression du/des srvices : " << query.lastError().text() << '\n';
+            qDebug() << "Error during the execution of the request, DeleteActivity : " << query.lastError().text() << '\n';
+            //Closing the connection
             db.close();
             db.removeDatabase("QSQLITE");
             return;
         }
-        // Fermeture de la connexion
+        //Closing the connection
         db.close();
         db.removeDatabase("QSQLITE");
+        //Put the right id for the activities and update the tableView
         ReorganizesIdActivity();
         UpdateActivity(ui->comboBoxServicesAdmin->currentIndex()+1);
     }
@@ -675,47 +723,58 @@ void MainWindow::on_pushButtonDeleteActivity_clicked()
  */
 void MainWindow::ReorganizesIdActivity()
 {
+    //Preparation of the database
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
-    if (!db.open())
+    if (!db.open()) //Try to open the database
     {
-        qDebug() << "Impossible de se connecter a la base de donnees ";
+        qDebug() << "Error when opening the database, ReorganizesIdActivity (id): " << db.lastError().text() << '\n';
+        db.removeDatabase("QSQLITE");
         return;
     }
-    QSqlQuery query;
-    query.exec("SELECT * FROM titem");
+    QSqlQuery query("SELECT * FROM titem");
     int nIdActivity = 0;
-    while (query.next())
+
+    //For all the results of the query
+    while (query.next()) //Try to execute the query
     {
         nIdActivity++;
         int nCurrentIdActivity = query.value(0).toInt();
-        if (nIdActivity != nCurrentIdActivity)
+        if (nIdActivity != nCurrentIdActivity) //The id is not the right one, we correct it
         {
             //L'id n'est pas le bon, on le corrige
-            QString sUpdateQuery = QString("UPDATE titem SET IdItem = %1 WHERE IdItem = %2").arg(nIdActivity).arg(nCurrentIdActivity);
-            query.exec(sUpdateQuery);
+            if(!query.exec(QString("UPDATE titem SET IdItem = %1 WHERE IdItem = %2").arg(nIdActivity).arg(nCurrentIdActivity))) //Try to execute the query
+            {
+                qDebug() << "Error during the execution of the request, ReorganizesIdActivity (id): " << query.lastError().text() << '\n';
+                //Closing the connection
+                db.close();
+                db.removeDatabase("QSQLITE");
+                return;
+            }
         }
     }
-    query.exec("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
+
+    query.exec("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)); //W.I.P (pas besoin de exec)
     int nOrderActivity=0;
-    while (query.next())
+    while (query.next())     //For all the results of the query
     {
         nOrderActivity++;
         int currentIdOrder = query.value(3).toInt();
-        if (nOrderActivity != currentIdOrder)
+        if (nOrderActivity != currentIdOrder) //The order is not the right one, we correct it
         {
-            //L'id n'est pas le bon, on le corrige
             QString sUpdateQuery = QString("UPDATE titem SET OrdreItem = %1 WHERE OrdreItem = %2 AND fk_titem_tservice = %3").arg(nOrderActivity).arg(currentIdOrder).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
-            if(!query.exec(sUpdateQuery))
+            //W.I.P pas besoin du QString
+            if(!query.exec(sUpdateQuery)) //Try to execute the query
             {
-                qDebug() << "Erreur lors de la requête permettant de remettre en ordre l'ordre des items : " << query.lastError().text() << '\n';
-            }
-            else
-            {
-                qDebug() << "Ordres des items mis a jour avec succès" << '\n';
+                qDebug() << "Error during the execution of the request, ReorganizesIdActivity (order): " << query.lastError().text() << '\n';
+                //Closing the connection
+                db.close();
+                db.removeDatabase("QSQLITE");
+                return;
             }
         }
     }
+    //Closing the connection
     db.close();
     db.removeDatabase("QSQLITE");
 }
@@ -725,68 +784,94 @@ void MainWindow::ReorganizesIdActivity()
  */
 void MainWindow::on_pushButtonAddService_clicked()
 {
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
-    db.setDatabaseName(m_sDatabasePath);
-    db.open();
-    int nMaxIdService = 0;
-    QSqlQuery query;
-    query.prepare("SELECT MAX(IdService) FROM tservice");
-    if (!query.exec())
+    int nMaxIdService = GetMaxIdService();
+
+    //Initialization of the dialog window
+    QDialog *pDialog = new QDialog(this);
+    pDialog->setWindowTitle("Ajouter un service");
+    QVBoxLayout *pMainLayout = new QVBoxLayout(pDialog);
+    QLabel *pLabel = new QLabel("Nom du service :");
+    QLineEdit *pNameActivitelineEdit = new QLineEdit;
+    QPushButton *pOkButton = new QPushButton("OK");
+    pNameActivitelineEdit->setValidator(m_pValidatorName);
+    pMainLayout->addWidget(pLabel);
+    pMainLayout->addWidget(pNameActivitelineEdit);
+    pMainLayout->addWidget(pOkButton);
+    pDialog->setLayout(pMainLayout);
+    pDialog->connect(pOkButton, &QPushButton::clicked, pDialog,[&, pNameActivitelineEdit, nMaxIdService]() //When validation button was pressed
     {
-        qDebug() << "Erreur lors de la requête permettant de récupérer l'id maximum des services pour la création d'un nouveau service : " << query.lastError().text() << '\n';
-    }
-    else
-    {
-        if (query.next())
+        if (!pNameActivitelineEdit->text().isEmpty()) //If the user has entered a name to the service
         {
-            nMaxIdService = query.value(0).toInt();
-        }
-    }
-    db.close();
-    db.removeDatabase("QSQLITE");
-    QDialog *dialog = new QDialog(this);
-    dialog->setWindowTitle("Ajouter un service");
-    QVBoxLayout *mainLayout = new QVBoxLayout(dialog);
-    QLabel *label = new QLabel("Nom du service :");
-    QLineEdit *NameActivitelineEdit = new QLineEdit;
-    QPushButton *okButton = new QPushButton("OK");
-    NameActivitelineEdit->setValidator(m_pValidatorName);
-    mainLayout->addWidget(label);
-    mainLayout->addWidget(NameActivitelineEdit);
-    mainLayout->addWidget(okButton);
-    dialog->setLayout(mainLayout);
-    dialog->connect(okButton, &QPushButton::clicked, [&]() //When validation button was pressed
-    {
-        if (!NameActivitelineEdit->text().isEmpty())
-        {
-            dialog->accept();
+            pDialog->accept();
+            //Preparation of the database
             QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE"); // Définir le type de la base de donnée
-            db.setDatabaseName(m_sDatabasePath); // Assigner le chemin à la variable de la base de donnée
-            db.open(); // Ouvrir la base de données
-            QSqlQuery query; // Créer un objet de type QSqlQuery
-            query.prepare("INSERT INTO tservice (IdService, NameService) VALUES(" + QString::number(nMaxIdService+1) + ",'" + NameActivitelineEdit->text() + "')"); // Préparer la requête
-            if(query.exec()) // Executer la requête
+            db.setDatabaseName(m_sDatabasePath); // Assigner le chemin à la variable de la base de donné
+            if (!db.open()) //Try to open the database
             {
-                qDebug() << "Nouveau service ajouté avec succès"; // Afficher un message de succès
-                UpdateServices(ui->comboBoxServicesAdmin->currentIndex());
-                ui->comboBoxServicesAdmin->setCurrentIndex(ui->comboBoxServicesAdmin->count()-1);
+                qDebug() << "Error when opening the database, ReorganizesIdActivity (id): " << db.lastError().text() << '\n';
+                db.removeDatabase("QSQLITE");
+                return;
             }
-            else
+            QString sQuery("INSERT INTO tservice (IdService, NameService) VALUES(" + QString::number(nMaxIdService+1) + ",'" + pNameActivitelineEdit->text() + "')"); //W.I.P pas besoin du QString
+            QSqlQuery query;
+            if(!query.exec(sQuery)) //Try to execute the query
             {
-                qDebug() << "Erreur lors de la création de la séquence" << query.lastError(); // Afficher un message d'erreur
+                qDebug() << "Error during the execution of the request, AddService: " << query.lastError().text() << '\n';
+                //Closing the connection
+                db.close();
+                db.removeDatabase("QSQLITE");
+                return;
             }
-            db.close(); // Fermer la base de données
+            //Update Service
+            UpdateServices(ui->comboBoxServicesAdmin->currentIndex());
+            ui->comboBoxServicesAdmin->setCurrentIndex(ui->comboBoxServicesAdmin->count()-1);
+            //Closing the connection
+            db.close();
             db.removeDatabase("QSQLITE");
         }
-        else
+        else //If the user has not entered a service name
         {
-           if (NameActivitelineEdit->text().isEmpty())
-           {
-               QMessageBox::critical(this,tr("Erreur"), tr("Veuillez entrez un nom de séquence"));
-           }
+            QMessageBox::critical(this,tr("Erreur"), tr("Veuillez entrez un nom de service"));
         }
     });
-    dialog->exec();
+    pDialog->exec();
+}
+
+/*!
+ * \brief MainWindow::GetMaxIdService Function that returns the maximum id of the service
+ * \return The maximum id of the service
+ */
+int MainWindow::GetMaxIdService()
+{
+    //Preparation of the database
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(m_sDatabasePath);
+    if (!db.open()) //Try to open the database
+    {
+        qDebug() << "Error when opening the database, GetMaxIdService: " << db.lastError().text() << '\n';
+        db.removeDatabase("QSQLITE");
+        return 1;
+    }
+    int nMaxIdService = 0;
+    QSqlQuery query("SELECT MAX(IdService) FROM tservice");
+    if(!query.exec()) //Try to execute the query
+    {
+        qDebug() << "Error during the execution of the request, GetMaxIdService: " << query.lastError().text() << '\n';
+        //Closing the connection
+        db.close();
+        db.removeDatabase("QSQLITE");
+        return 1;
+    }
+    //Take the results
+    if (query.next())
+    {
+       nMaxIdService = query.value(0).toInt();
+    }
+    //Closing the connection
+    db.close();
+    db.removeDatabase("QSQLITE");
+    //return the max id service
+    return nMaxIdService;
 }
 
 /*!
@@ -794,27 +879,36 @@ void MainWindow::on_pushButtonAddService_clicked()
  */
 void MainWindow::ReorganizesIdServices()
 {
+    //Preparation of the database
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
-    if (!db.open())
+    if (!db.open()) //Try to open the database
     {
-        qDebug() << "Impossible de se connecter a la base de donnees";
-        return;
+       qDebug() << "Error when opening the database, ReorganizesIdServices: " << db.lastError().text() << '\n';
+       db.removeDatabase("QSQLITE");
+       return;
     }
     QSqlQuery query;
-    query.exec("SELECT * FROM tservice");
+    query.exec("SELECT * FROM tservice"); //W.I.P
     int nIdService = 0;
-    while (query.next())
+    while (query.next()) //For all the results of the query
     {
         nIdService++;
         int nCurrentIdService = query.value(0).toInt();
-        if (nIdService != nCurrentIdService)
+        if (nIdService != nCurrentIdService) //The id is not the right one, we correct it
         {
-            //L'id n'est pas le bon, on le corrige
-            QString sUpdateQuery = QString("UPDATE tservice SET IdService = %1 WHERE IdService = %2").arg(nIdService).arg(nCurrentIdService);
-            query.exec(sUpdateQuery);
+            QString sUpdateQuery = QString("UPDATE tservice SET IdService = %1 WHERE IdService = %2").arg(nIdService).arg(nCurrentIdService); //W.I.P pas besoin du QString
+            if(!query.exec(sUpdateQuery)) //Try to execute the query
+            {
+                qDebug() << "Error during the execution of the request, GetMaxIdService: " << query.lastError().text() << '\n';
+                //Closing the connection
+                db.close();
+                db.removeDatabase("QSQLITE");
+                return;
+            }
         }
     }
+    //Closing the connection
     db.close();
     db.removeDatabase("QSQLITE");
 }
@@ -825,42 +919,52 @@ void MainWindow::ReorganizesIdServices()
 void MainWindow::on_pushButtonDeleteService_clicked()
 {
     QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(nullptr, "Suppresion séquence", "Voulez-vous vraiment supprimer le service <b>"+ui->comboBoxServicesAdmin->currentText() +"</b> qui contient <b>" + QString::number(ui->tableWidgetServicesAdmin->rowCount())+ "</b> activité(s) ?", QMessageBox::Yes|QMessageBox::No);
-    if (reply == QMessageBox::Yes)
+    reply = QMessageBox::question(nullptr, "Suppresion service", "Voulez-vous vraiment supprimer le service <b>"+ui->comboBoxServicesAdmin->currentText() +"</b> qui contient <b>" + QString::number(ui->tableWidgetServicesAdmin->rowCount())+ "</b> activité(s) ?", QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes) //If the user answered yes to the confirmation
     {
-        // Le bouton "Oui" a été cliqué
-        // Récupérer les plages sélectionnées
+        //Preparation of the database
         QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
         db.setDatabaseName(m_sDatabasePath);
-        if (!db.open())
+        if (!db.open()) //Try to open the database
         {
-            qDebug() << "Erreur lors de l'ouverture de la base de données (supprimer sequence) : " << db.lastError().text() << '\n';
+            qDebug() << "Error when opening the database, DeleteService: " << db.lastError().text() << '\n';
+            db.removeDatabase("QSQLITE");
             return;
         }
-        qDebug()<<QString("DELETE FROM tservice WHERE IdService = %1").arg(ui->comboBoxServicesAdmin->currentIndex()+1);
+        //Delete the service
         QSqlQuery query(QString("DELETE FROM tservice WHERE IdService = %1").arg(ui->comboBoxServicesAdmin->currentIndex()+1));
-        if(!query.exec())
+        if(!query.exec()) //Try to execute the query
         {
-            qDebug() << "Erreur lors de la supression du service: " << query.lastError().text() << '\n';
+            qDebug() << "Error during the execution of the request, DeleteService (service): " << query.lastError().text() << '\n';
+            //Closing the connection
             db.close();
             db.removeDatabase("QSQLITE");
             return;
         }
+        //Delete all the activites of the service
         QSqlQuery secondQuery(QString("DELETE FROM titem WHERE fk_titem_tservice = %1").arg(ui->comboBoxServicesAdmin->currentIndex()+1));
-        if(!secondQuery.exec())
+        if(!secondQuery.exec()) //Try to execute the query
         {
-            qDebug() << "Erreur lors de la suprression des activités liés au service supprimé: " << secondQuery.lastError().text() << '\n';
+            qDebug() << "Error during the execution of the request, DeleteService (activity): " << query.lastError().text() << '\n';
+            //Closing the connection
             db.close();
             db.removeDatabase("QSQLITE");
             return;
         }
-        QSqlQuery thirdQuery;
-        thirdQuery.prepare("UPDATE titem SET fk_titem_tservice = fk_titem_tservice - 1 WHERE fk_titem_tservice > ?");
-        thirdQuery.addBindValue(ui->comboBoxServicesAdmin->currentIndex()+1);
-        thirdQuery.exec();
-        // Fermeture de la connexion
+        //Decrements the foreign key of the services being after the one delete
+        QSqlQuery thirdQuery("UPDATE titem SET fk_titem_tservice = fk_titem_tservice - 1 WHERE fk_titem_tservice > "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
+        if(!thirdQuery.exec()) //Try to execute the query
+        {
+            qDebug() << "Error during the execution of the request, DeleteService (update): " << query.lastError().text() << '\n';
+            //Closing the connection
+            db.close();
+            db.removeDatabase("QSQLITE");
+            return;
+        }
+        //Closing the connection
         db.close();
         db.removeDatabase("QSQLITE");
+        //Updates and reorganizes the id of the activities
         ReorganizesIdServices();
         UpdateServices(ui->comboBoxServicesAdmin->currentIndex()-1);
     }
@@ -872,21 +976,26 @@ void MainWindow::on_pushButtonDeleteService_clicked()
  */
 void MainWindow::ChangeLastSelectedIndexService(int nIndex_in)
 {
+    //Preparation of the database
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
-    db.open();
-    QString sQuery = QString("UPDATE tsettings SET ValueOfTheSettings = %1 WHERE IdSettings = 1").arg(nIndex_in);
-    qDebug()<<sQuery;
-    QSqlQuery query(sQuery);
-    if(!query.exec())
+    if (!db.open()) //Try to open the database
     {
-        qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+        qDebug() << "Error when opening the database, ChangeLastSelectedIndexService: " << db.lastError().text() << '\n';
+        db.removeDatabase("QSQLITE");
+        return;
     }
-    else
+    QString sQuery = QString("UPDATE tsettings SET ValueOfTheSettings = %1 WHERE IdSettings = 1").arg(nIndex_in); //W.I.P pas besoin du QString
+    QSqlQuery query;
+    if(!query.exec(sQuery)) //Try to execute the query
     {
-        qDebug() << "Changement de l'index du dernier service sélécitonner, changer avec succès." << '\n';
+        qDebug() << "Error during the execution of the request, DeleteService (service): " << query.lastError().text() << '\n';
+        //Closing the connection
+        db.close();
+        db.removeDatabase("QSQLITE");
+        return;
     }
-    // Fermeture de la connexion
+    //Closing the connection
     db.close();
     db.removeDatabase("QSQLITE");
 }
@@ -898,26 +1007,36 @@ void MainWindow::ChangeLastSelectedIndexService(int nIndex_in)
 int MainWindow::GetLastSelectedIndexService()
 {
     int nIndex_out = 0;
+    //Preparation of the database
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
-    db.open();
+    if (!db.open()) //Try to open the database
+    {
+        qDebug() << "Error when opening the database, ChangeLastSelectedIndexService: " << db.lastError().text() << '\n';
+        db.removeDatabase("QSQLITE");
+        return 1;
+    }
     QSqlQuery query("SELECT ValueOfTheSettings FROM tsettings WHERE IdSettings = 1");
-    if(query.exec())
+    if(!query.exec()) //Try to execute the query
     {
-        while(query.next())
-        {
-            nIndex_out = query.value(0).toInt();
-        }
+        qDebug() << "Error during the execution of the request, GetLastSelectedIndexService: " << query.lastError().text() << '\n';
+        //Closing the connection
+        db.close();
+        db.removeDatabase("QSQLITE");
+        return 1;
     }
-    else
+    //Take the results
+    while(query.next())
     {
-        qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+        nIndex_out = query.value(0).toInt();
     }
-    // Fermeture de la connexion
+    //Closing the connection
     db.close();
     db.removeDatabase("QSQLITE");
+    //Return the index of the last selected service
     return nIndex_out;
 }
+
 /*!
  * \brief MainWindow::GetPasswordOfArhm Retrieves the password needed to access the admin interface from the database and returns it
  * \return sPassword_out The password allowing to go on the admin interface
@@ -925,23 +1044,32 @@ int MainWindow::GetLastSelectedIndexService()
 QString MainWindow::GetPasswordOfArhm()
 {
     QString sPassword_out = 0;
+    //Preparation of the database
     QSqlDatabase db= QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
-    db.open();
+    if (!db.open()) //Try to open the database
+    {
+        qDebug() << "Error when opening the database, GetPasswordOfArhm: " << db.lastError().text() << '\n';
+        db.removeDatabase("QSQLITE");
+        return "error";
+    }
     QSqlQuery query("SELECT ValueOfTheSettings FROM tsettings WHERE IdSettings = 2");
-    if(query.exec())
+    if(!query.exec()) //Try to execute the query
     {
-        while(query.next())
-        {
-            sPassword_out = query.value(0).toString();
-        }
+        qDebug() << "Error during the execution of the request, GetLastSelectedIndexService: " << query.lastError().text() << '\n';
+        //Closing the connection
+        db.close();
+        db.removeDatabase("QSQLITE");
+        return "error";
     }
-    else
+    //Take the results
+    while(query.next())
     {
-        qDebug() << "Erreur lors de l'execution de la requête : " << query.lastError().text() << '\n';
+        sPassword_out = query.value(0).toString();
     }
-    // Fermeture de la connexion
+    //Closing the connection
     db.close();
     db.removeDatabase("QSQLITE");
+    //Return the password allowing to go on the admin interface
     return sPassword_out;
 }

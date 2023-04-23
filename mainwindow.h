@@ -1,10 +1,18 @@
 /********************************************************************
     created:	2022-01-06
+    last update: 2022-04-23
     file path:	mainwindow.cpp
     author:		Lucas Journoud
     copyright:	W.I.P
 
-    purpose: 	dialog allowing the user to enter a new decryption key (oak files)
+    purpose: 	file containing all the features:
+    - Possibility to display the different services and their activities.
+    - Possibility to launch a service.
+    - Administrator interface allowing to modify the database associated to the service and activity
+
+    todo:
+    - increases the size of QLabel and QLineEdit
+    - change the icon of the application
 *********************************************************************/
 
 #ifndef MAINWINDOW_H
@@ -52,6 +60,8 @@ public:
     void ReorganizesIdActivity();
     void ReorganizesIdServices();
     void ChangeLastSelectedIndexService(int nIndex_in);
+    int GetMaxIdActivity();
+    int GetMaxIdService();
     int GetLastSelectedIndexService();
     QString GetPasswordOfArhm();
     QByteArray HashingAndSalling(QString sTextToHash, quint32 saltValue);
