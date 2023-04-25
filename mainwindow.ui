@@ -7,8 +7,14 @@
     <x>0</x>
     <y>0</y>
     <width>1920</width>
-    <height>1310</height>
+    <height>1246</height>
    </rect>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>16777215</width>
+    <height>16777215</height>
+   </size>
   </property>
   <property name="font">
    <font>
@@ -27,7 +33,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="pageMainWindow">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -115,6 +121,7 @@
                  <font>
                   <family>Arial</family>
                   <pointsize>32</pointsize>
+                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -135,6 +142,7 @@
                  <font>
                   <family>Arial</family>
                   <pointsize>32</pointsize>
+                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -175,10 +183,28 @@
                <layout class="QVBoxLayout" name="verticalLayout_36">
                 <item>
                  <widget class="QTableWidget" name="tableWidgetServices">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                    <horstretch>100</horstretch>
+                    <verstretch>100</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>855</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="font">
                    <font>
                     <family>Arial</family>
-                    <pointsize>48</pointsize>
+                    <pointsize>36</pointsize>
                    </font>
                   </property>
                   <property name="styleSheet">
@@ -220,6 +246,7 @@
              <font>
               <family>Arial</family>
               <pointsize>100</pointsize>
+              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -227,6 +254,22 @@
              <string>PushButton</string>
             </property>
            </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Minimum</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </item>
@@ -335,7 +378,7 @@
                        <bool>false</bool>
                       </attribute>
                       <attribute name="verticalHeaderDefaultSectionSize">
-                       <number>76</number>
+                       <number>80</number>
                       </attribute>
                       <row>
                        <property name="text">
@@ -455,13 +498,6 @@
                     <property name="topMargin">
                      <number>0</number>
                     </property>
-                    <item>
-                     <widget class="QLabel" name="label">
-                      <property name="text">
-                       <string>Activités</string>
-                      </property>
-                     </widget>
-                    </item>
                     <item>
                      <spacer name="verticalSpacer_5">
                       <property name="orientation">
