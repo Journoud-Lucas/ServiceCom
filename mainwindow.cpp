@@ -751,6 +751,7 @@ void MainWindow::ReorganizesIdActivity()
             }
             db.close();
             db.removeDatabase("QSQLITE");
+            ReorganizesIdActivity();
         }
     }
     db.close();
