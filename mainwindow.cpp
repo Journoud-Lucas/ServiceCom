@@ -722,7 +722,6 @@ void MainWindow::on_pushButtonDeleteActivity_clicked()
  */
 void MainWindow::ReorganizesIdActivity()
 {
-    int naxIdActivity=GetMaxIdActivity();
     //Preparation of the database
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
@@ -734,34 +733,28 @@ void MainWindow::ReorganizesIdActivity()
     }
     QSqlQuery query("SELECT * FROM titem");
     int nIdActivity = 0;
-
-    for(int i=0;i<naxIdActivity;i++)
+    //For all the results of the query
+    while (query.next()) //Try to execute the query
     {
-        //For all the results of the query
-        while (query.next()) //Try to execute the query
+        nIdActivity++;
+        int nCurrentIdActivity = query.value(0).toInt();
+        if (nIdActivity != nCurrentIdActivity) //The id is not the right one, we correct it
         {
-            nIdActivity++;
-            int nCurrentIdActivity = query.value(0).toInt();
-            if (nIdActivity != nCurrentIdActivity) //The id is not the right one, we correct it
+            //L'id n'est pas le bon, on le corrige
+            if(!query.exec(QString("UPDATE titem SET IdItem = %1 WHERE IdItem = %2").arg(nIdActivity).arg(nCurrentIdActivity))) //Try to execute the query
             {
-                //L'id n'est pas le bon, on le corrige
-                if(!query.exec(QString("UPDATE titem SET IdItem = %1 WHERE IdItem = %2").arg(nIdActivity).arg(nCurrentIdActivity))) //Try to execute the query
-                {
-                    qDebug() << "Error during the execution of the request, ReorganizesIdActivity (id): " << query.lastError().text() << '\n';
-                    //Closing the connection
-                    db.close();
-                    db.removeDatabase("QSQLITE");
-                    return;
-                }
+                qDebug() << "Error during the execution of the request, ReorganizesIdActivity (id): " << query.lastError().text() << '\n';
+                //Closing the connection
                 db.close();
                 db.removeDatabase("QSQLITE");
+                return;
             }
+            db.close();
+            db.removeDatabase("QSQLITE");
         }
     }
     db.close();
     db.removeDatabase("QSQLITE");
-
-
     //Preparation of the database
     QSqlDatabase secondDb = QSqlDatabase::addDatabase("QSQLITE");
     secondDb.setDatabaseName(m_sDatabasePath);
@@ -774,28 +767,25 @@ void MainWindow::ReorganizesIdActivity()
     QSqlQuery secondQuery("SELECT * FROM titem");
     secondQuery.exec("SELECT * FROM titem WHERE fk_titem_tservice = "+QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)); //W.I.P (pas besoin de exec)
     int nOrderActivity=0;
-    for(int i=0;i<naxIdActivity;i++)
+    while (secondQuery.next())     //For all the results of the query
     {
-        while (secondQuery.next())     //For all the results of the query
+        nOrderActivity++;
+        int currentIdOrder = secondQuery.value(3).toInt();
+        if (nOrderActivity != currentIdOrder) //The order is not the right one, we correct it
         {
-            nOrderActivity++;
-            int currentIdOrder = secondQuery.value(3).toInt();
-            if (nOrderActivity != currentIdOrder) //The order is not the right one, we correct it
+            QString sUpdateQuery = QString("UPDATE titem SET OrdreItem = %1 WHERE OrdreItem = %2 AND fk_titem_tservice = %3").arg(nOrderActivity).arg(currentIdOrder).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
+            //W.I.P pas besoin du QString
+            if(!secondQuery.exec(sUpdateQuery)) //Try to execute the query
             {
-                QString sUpdateQuery = QString("UPDATE titem SET OrdreItem = %1 WHERE OrdreItem = %2 AND fk_titem_tservice = %3").arg(nOrderActivity).arg(currentIdOrder).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
-                //W.I.P pas besoin du QString
-                if(!secondQuery.exec(sUpdateQuery)) //Try to execute the query
-                {
-                    qDebug() << "Error during the execution of the request, ReorganizesIdActivity (order): " << secondQuery.lastError().text() << '\n';
-                    //Closing the connection
-                    secondDb.close();
-                    secondDb.removeDatabase("QSQLITE");
-                    return;
-                }
+                qDebug() << "Error during the execution of the request, ReorganizesIdActivity (order): " << secondQuery.lastError().text() << '\n';
+                //Closing the connection
                 secondDb.close();
                 secondDb.removeDatabase("QSQLITE");
-                ReorganizesIdActivity();
+                return;
             }
+            secondDb.close();
+            secondDb.removeDatabase("QSQLITE");
+            ReorganizesIdActivity();
         }
     }
     //Closing the connection
@@ -903,7 +893,6 @@ int MainWindow::GetMaxIdService()
  */
 void MainWindow::ReorganizesIdServices()
 {
-    int naxIdActivity=GetMaxIdActivity();
     //Preparation of the database
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(m_sDatabasePath);
@@ -916,28 +905,24 @@ void MainWindow::ReorganizesIdServices()
     QSqlQuery query;
     query.exec("SELECT * FROM tservice"); //W.I.P
     int nIdService = 0;
-
-    for(int i=0;i<naxIdActivity;i++)
+    while (query.next()) //For all the results of the query
     {
-        while (query.next()) //For all the results of the query
+        nIdService++;
+        int nCurrentIdService = query.value(0).toInt();
+        if (nIdService != nCurrentIdService) //The id is not the right one, we correct it
         {
-            nIdService++;
-            int nCurrentIdService = query.value(0).toInt();
-            if (nIdService != nCurrentIdService) //The id is not the right one, we correct it
+            QString sUpdateQuery = QString("UPDATE tservice SET IdService = %1 WHERE IdService = %2").arg(nIdService).arg(nCurrentIdService); //W.I.P pas besoin du QString
+            if(!query.exec(sUpdateQuery)) //Try to execute the query
             {
-                QString sUpdateQuery = QString("UPDATE tservice SET IdService = %1 WHERE IdService = %2").arg(nIdService).arg(nCurrentIdService); //W.I.P pas besoin du QString
-                if(!query.exec(sUpdateQuery)) //Try to execute the query
-                {
-                    qDebug() << "Error during the execution of the request, GetMaxIdService: " << query.lastError().text() << '\n';
-                    //Closing the connection
-                    db.close();
-                    db.removeDatabase("QSQLITE");
-                    return;
-                }
+                qDebug() << "Error during the execution of the request, GetMaxIdService: " << query.lastError().text() << '\n';
+                //Closing the connection
                 db.close();
                 db.removeDatabase("QSQLITE");
-                ReorganizesIdServices();
+                return;
             }
+            db.close();
+            db.removeDatabase("QSQLITE");
+            ReorganizesIdServices();
         }
     }
     //Closing the connection
