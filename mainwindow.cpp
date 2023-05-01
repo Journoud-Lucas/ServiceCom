@@ -18,7 +18,6 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QScrollBar>
 
 /*!
  * \brief MainWindow::MainWindow Main window constructor
