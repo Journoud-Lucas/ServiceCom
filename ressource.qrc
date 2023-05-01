@@ -3,5 +3,7 @@
         <file>close.png</file>
         <file>settings.png</file>
 	<file>house.png</file>
+	<file>open eye.png</file>
+	<file>close eye.png</file>
     </qresource>
 </RCC>

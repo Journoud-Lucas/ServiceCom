@@ -27,6 +27,7 @@
 #include <QTextToSpeech>
 #include <QTimeEdit>
 #include <QScrollBar>
+#include <QAction>
 
 const QColor COLOR_RED = QColor(237, 28, 36);
 const QColor COLOR_GREEN = QColor(146,208,79);

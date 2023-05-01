@@ -148,8 +148,24 @@ void MainWindow::Settings()
     QVBoxLayout *pMainLayoutDialogPassword = new QVBoxLayout(pDialogPassword);
     QLabel *pLabelPassword = new QLabel("Entrez le mot de passe :");
     QLineEdit *pLineEditPassword = new QLineEdit;
+    pLineEditPassword->setEchoMode(QLineEdit::Password);
     QPushButton *pOkButtonPassword = new QPushButton("OK");
     QPushButton *pCancelButtonPassword = new QPushButton("Annuler");
+    //Button to display the password or not
+    QAction *pShowPassword = new QAction(this);
+    pShowPassword->setIcon(QIcon(":/images/close eye.png"));
+    connect(pShowPassword, &QAction::triggered, this, [&, pLineEditPassword, pShowPassword]()
+            {
+                if (pLineEditPassword->echoMode() == QLineEdit::Password) {
+                    pLineEditPassword->setEchoMode(QLineEdit::Normal);
+                    pShowPassword->setIcon(QIcon(":/images/open eye.png"));
+                }
+                else {
+                    pLineEditPassword->setEchoMode(QLineEdit::Password);
+                    pShowPassword->setIcon(QIcon(":/images/close eye.png"));
+                }
+            });
+    pLineEditPassword->addAction(pShowPassword, QLineEdit::TrailingPosition);
     pMainLayoutDialogPassword->addWidget(pLabelPassword);
     pMainLayoutDialogPassword->addWidget(pLineEditPassword);
     pMainLayoutDialogPassword->addWidget(pOkButtonPassword);
