@@ -18,6 +18,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QScrollBar>
 
 /*!
  * \brief MainWindow::MainWindow Main window constructor
@@ -50,6 +51,7 @@ void MainWindow::TableView()
     ui->tableWidgetServices->setShowGrid(false);
     ui->tableWidgetServices->setColumnWidth(0, 1000);
     ui->tableWidgetServices->setColumnWidth(1, 350);
+    ui->tableWidgetServices->verticalScrollBar()->setStyleSheet("QScrollBar {background-color: #92d04f; width: 100px;}");
     //TableWidgetServicesAdmin
     ui->tableWidgetServicesAdmin->setColumnCount(2);
     ui->tableWidgetServicesAdmin->setEditTriggers(QAbstractItemView::NoEditTriggers);
