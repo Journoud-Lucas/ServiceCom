@@ -734,9 +734,9 @@ void MainWindow::on_pushButtonDeleteActivity_clicked()
 }
 
 /*!
- * \brief MainWindow::ReorganizesIdActivity Reorganize the id of the activity in order to put them correctly in order is without hole
+ * \brief MainWindow::ReorganizesIdActivity Reorganize the id of the activities in order to put them correctly in order and without holes
  */
-void MainWindow::ReorganizesIdActivity()
+void MainWindow::ReorganizesIdActivityId()
 {
     //Preparation of the database
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
@@ -767,11 +767,18 @@ void MainWindow::ReorganizesIdActivity()
             }
             db.close();
             db.removeDatabase("QSQLITE");
-            ReorganizesIdActivity();
+            ReorganizesIdActivityId();
         }
     }
     db.close();
     db.removeDatabase("QSQLITE");
+}
+
+/*!
+ * \brief MainWindow::ReorganizesIdActivity Reorganize the order of the activities in order to put them correctly in order and without holes
+ */
+void MainWindow::ReorganizesIdActivityOrder()
+{
     //Preparation of the database
     QSqlDatabase secondDb = QSqlDatabase::addDatabase("QSQLITE");
     secondDb.setDatabaseName(m_sDatabasePath);
@@ -802,12 +809,21 @@ void MainWindow::ReorganizesIdActivity()
             }
             secondDb.close();
             secondDb.removeDatabase("QSQLITE");
-            ReorganizesIdActivity();
+            ReorganizesIdActivityOrder();
         }
     }
     //Closing the connection
     secondDb.close();
     secondDb.removeDatabase("QSQLITE");
+}
+
+/*!
+ * \brief MainWindow::ReorganizesIdActivity Calls for the reorganization of id and order
+ */
+void MainWindow::ReorganizesIdActivity()
+{
+    ReorganizesIdActivityId();
+    ReorganizesIdActivityOrder();
 }
 
 /*!

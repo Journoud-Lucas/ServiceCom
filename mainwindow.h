@@ -58,6 +58,8 @@ public:
     void StopServices();
     void ResetServices();
     void ReorganizesIdActivity();
+    void ReorganizesIdActivityId();
+    void ReorganizesIdActivityOrder();
     void ReorganizesIdServices();
     void ChangeLastSelectedIndexService(int nIndex_in);
     int GetMaxIdActivity();
