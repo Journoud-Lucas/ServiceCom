@@ -53,7 +53,7 @@ void MainWindow::TableView()
     //TableWidgetServicesAdmin
     ui->tableWidgetServicesAdmin->setColumnCount(2);
     ui->tableWidgetServicesAdmin->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->tableWidgetServicesAdmin->setShowGrid(false);
+    ui->tableWidgetServicesAdmin->setShowGrid(true);
     ui->tableWidgetServicesAdmin->setColumnWidth(0, 1000);
     ui->tableWidgetServicesAdmin->setColumnWidth(1, 500);
     //Create a new element and set its height
@@ -207,7 +207,7 @@ void MainWindow::InitialConfiguration()
     SettingsButtonConfiguration();
     TableView();
     #if _WIN32 //Window 32 and 64bit
-        m_sDatabasePath="D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+        m_sDatabasePath="D://Program Files//Arhm//ServiceCOM-2023//BDD_ServiceCom.db";
     #elif __ANDROID__ //Android device
         m_sDatabasePath="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
     #endif
@@ -623,7 +623,7 @@ void MainWindow::on_pushButtonModifyActivity_clicked()
         pMainLayout->addWidget(pTimeEdit);
         pMainLayout->addWidget(pOkButton);
         pDialog->setLayout(pMainLayout);
-        pDialog->connect(pOkButton, &QPushButton::clicked, pDialog,[&, pLineEditNameActivite, pTimeEdit]() //When validation button was pressed
+        pDialog->connect(pOkButton, &QPushButton::clicked, pDialog,[&, pLineEditNameActivite, pTimeEdit, nFirstRow]() //When validation button was pressed
         {
             if (!pLineEditNameActivite->text().isEmpty()&&pTimeEdit->time().toString()!="00:00:00") //If the user has entered a text and a time
             {
@@ -635,7 +635,21 @@ void MainWindow::on_pushButtonModifyActivity_clicked()
                     qDebug() << "Error when opening the database, ModifyActivity : " << db.lastError().text() << '\n';
                     return;
                 }
-                QString sQuery = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %5 AND OrdreItem = %6").arg(pLineEditNameActivite->text()).arg(QString::number(pTimeEdit->time().hour()*3600+pTimeEdit->time().minute()*60+pTimeEdit->time().second())).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount())).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)).arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1)).arg(QString::number(ui->tableWidgetServicesAdmin->rowCount()));
+                /*
+                QString sQuery = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %4 AND OrdreItem = %3")
+                                     .arg(pLineEditNameActivite->text())
+                                     .arg(QString::number(pTimeEdit->time().hour()*3600+pTimeEdit->time().minute()*60+pTimeEdit->time().second()))
+                                     .arg(QString::number(nFirstRow+1))
+                                     .arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
+                */
+
+
+                QString sQuery = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %4 AND OrdreItem = %3").arg(
+                    pLineEditNameActivite->text(),
+                    QString::number(pTimeEdit->time().hour()*3600+pTimeEdit->time().minute()*60+pTimeEdit->time().second()),
+                    QString::number(nFirstRow+1),
+                    QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
+
                 QSqlQuery query(sQuery);
                 if(!query.exec()) //Try to execute the query
                 {
