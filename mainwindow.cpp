@@ -45,7 +45,7 @@ MainWindow::~MainWindow()
  */
 void MainWindow::TableView()
 {
-    //TableWidget
+    //TableWidgetServices
     ui->tableWidgetServices->setColumnCount(2);
     ui->tableWidgetServices->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->tableWidgetServices->setShowGrid(false);
