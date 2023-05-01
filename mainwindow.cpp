@@ -636,15 +636,6 @@ void MainWindow::on_pushButtonModifyActivity_clicked()
                     qDebug() << "Error when opening the database, ModifyActivity : " << db.lastError().text() << '\n';
                     return;
                 }
-                /*
-                QString sQuery = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %4 AND OrdreItem = %3")
-                                     .arg(pLineEditNameActivite->text())
-                                     .arg(QString::number(pTimeEdit->time().hour()*3600+pTimeEdit->time().minute()*60+pTimeEdit->time().second()))
-                                     .arg(QString::number(nFirstRow+1))
-                                     .arg(QString::number(ui->comboBoxServicesAdmin->currentIndex()+1));
-                */
-
-
                 QString sQuery = QString("UPDATE titem SET NameItem = '%1', Time = %2, OrdreItem = %3, fk_titem_tservice = %4 WHERE fk_titem_tservice = %4 AND OrdreItem = %3").arg(
                     pLineEditNameActivite->text(),
                     QString::number(pTimeEdit->time().hour()*3600+pTimeEdit->time().minute()*60+pTimeEdit->time().second()),
