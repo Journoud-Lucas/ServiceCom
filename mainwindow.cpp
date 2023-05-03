@@ -51,6 +51,7 @@ void MainWindow::TableView()
     ui->tableWidgetServices->setColumnWidth(0, 1000);
     ui->tableWidgetServices->setColumnWidth(1, 350);
     ui->tableWidgetServices->verticalScrollBar()->setStyleSheet("QScrollBar {background-color: #92d04f; width: 100px;}");
+    ui->tableWidgetServices->horizontalScrollBar()->setStyleSheet("QScrollBar {background-color: #92d04f;}");
     //TableWidgetServicesAdmin
     ui->tableWidgetServicesAdmin->setColumnCount(2);
     ui->tableWidgetServicesAdmin->setEditTriggers(QAbstractItemView::NoEditTriggers);
