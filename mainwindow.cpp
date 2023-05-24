@@ -16,6 +16,15 @@
     - ctrl + f: W.I.P
 *********************************************************************/
 
+// s -> string, qstring
+// n -> nombre entier
+// b -> booléen
+// p -> pointer
+// m_ -> variable membre
+// préfixe _in -> rajouter aux paramètres des fonctions
+// préfixe _out -> rajouter aux variable retourner par une fonction
+// camelCase utilisé
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -201,13 +210,13 @@ void MainWindow::Settings()
  * \param saltValue Salt to use
  * \return hashedPassword the asher password
  */
-QByteArray MainWindow::HashingAndSalling(QString sTextToHash, quint32 saltValue)
+QByteArray MainWindow::HashingAndSalling(QString sTextToHash_in, quint32 saltValue_in)
 {
-    unsigned int saltUInt = static_cast<unsigned int>(saltValue);
+    unsigned int saltUInt = static_cast<unsigned int>(saltValue_in);
     char salt = static_cast<char>(saltUInt);
-    QByteArray passwordBytes = (sTextToHash+salt).toUtf8();
-    QByteArray hashedPassword = QCryptographicHash::hash(passwordBytes, QCryptographicHash::Sha256);
-    return hashedPassword;
+    QByteArray passwordBytes = (sTextToHash_in+salt).toUtf8();
+    QByteArray hashedPassword_out = QCryptographicHash::hash(passwordBytes, QCryptographicHash::Sha256);
+    return hashedPassword_out;
 }
 
 /*!
@@ -225,7 +234,7 @@ void MainWindow::InitialConfiguration()
     SettingsButtonConfiguration();
     TableView();
     #if _WIN32 //Window 32 and 64bit
-        m_sDatabasePath="D://Program Files//Arhm//ServiceCOM-2023//BDD_ServiceCom.db";
+        m_sDatabasePath="D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
     #elif __ANDROID__ //Android device
         m_sDatabasePath="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
     #endif
@@ -763,7 +772,7 @@ void MainWindow::ReorganizesIdActivityId()
         int nCurrentIdActivity = query.value(0).toInt();
         if (nIdActivity != nCurrentIdActivity) //The id is not the right one, we correct it
         {
-            //L'id n'est pas le bon, on le corrige
+            //The id is not the right one, we correct it
             if(!query.exec(QString("UPDATE titem SET IdItem = %1 WHERE IdItem = %2").arg(nIdActivity).arg(nCurrentIdActivity))) //Try to execute the query
             {
                 qDebug() << "Error during the execution of the request, ReorganizesIdActivity (id): " << query.lastError().text() << '\n';
@@ -825,7 +834,7 @@ void MainWindow::ReorganizesIdActivityOrder()
 }
 
 /*!
- * \brief MainWindow::ReorganizesIdActivity Calls for the reorganization of id and order
+ * \brief MainWindow::ReorganizesActivity Calls for the reorganization of id and order
  */
 void MainWindow::ReorganizesIdActivity()
 {
@@ -1110,24 +1119,23 @@ QString MainWindow::GetPasswordOfArhm()
     db.setDatabaseName(m_sDatabasePath);
     if (!db.open()) //Try to open the database
     {
-        qDebug() << "Error when opening the database, GetPasswordOfArhm: " << db.lastError().text() << '\n';
+        qDebug() << "Error when opening the database, GetPasswordOfArhm: " <<
+                    db.lastError().text() << '\n';
         db.removeDatabase("QSQLITE");
         return "error";
     }
     QSqlQuery query("SELECT ValueOfTheSettings FROM tsettings WHERE IdSettings = 2");
     if(!query.exec()) //Try to execute the query
     {
-        qDebug() << "Error during the execution of the request, GetLastSelectedIndexService: " << query.lastError().text() << '\n';
+        qDebug() << "Error during the execution of the request, GetLastSelectedIndexService: " <<
+                    query.lastError().text() << '\n';
         //Closing the connection
         db.close();
         db.removeDatabase("QSQLITE");
         return "error";
     }
-    //Take the results
-    while(query.next())
-    {
-        sPassword_out = query.value(0).toString();
-    }
+    query.next();
+    sPassword_out = query.value(0).toString();
     //Closing the connection
     db.close();
     db.removeDatabase("QSQLITE");

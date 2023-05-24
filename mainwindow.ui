@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1920</width>
-    <height>1246</height>
+    <height>1080</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -33,7 +33,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="pageMainWindow">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -121,6 +121,7 @@
                  <font>
                   <family>Arial</family>
                   <pointsize>32</pointsize>
+                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -141,6 +142,7 @@
                  <font>
                   <family>Arial</family>
                   <pointsize>32</pointsize>
+                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -190,7 +192,7 @@
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
-                    <height>855</height>
+                    <height>500</height>
                    </size>
                   </property>
                   <property name="maximumSize">
@@ -233,7 +235,7 @@
             <property name="sizeHint" stdset="0">
              <size>
               <width>20</width>
-              <height>40</height>
+              <height>50</height>
              </size>
             </property>
            </spacer>
@@ -244,6 +246,7 @@
              <font>
               <family>Arial</family>
               <pointsize>100</pointsize>
+              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>
@@ -302,7 +305,7 @@
             </property>
             <widget class="QWidget" name="tabDatabase">
              <attribute name="title">
-              <string>Base de donnée</string>
+              <string>Base de données</string>
              </attribute>
              <layout class="QHBoxLayout" name="horizontalLayout_23">
               <item>
@@ -506,7 +509,7 @@
                       <property name="sizeHint" stdset="0">
                        <size>
                         <width>20</width>
-                        <height>120</height>
+                        <height>50</height>
                        </size>
                       </property>
                      </spacer>
@@ -522,7 +525,7 @@
                       <property name="minimumSize">
                        <size>
                         <width>170</width>
-                        <height>120</height>
+                        <height>100</height>
                        </size>
                       </property>
                       <property name="font">
@@ -563,7 +566,7 @@
                       <property name="sizeHint" stdset="0">
                        <size>
                         <width>20</width>
-                        <height>200</height>
+                        <height>125</height>
                        </size>
                       </property>
                      </spacer>
@@ -579,7 +582,7 @@
                       <property name="minimumSize">
                        <size>
                         <width>170</width>
-                        <height>120</height>
+                        <height>100</height>
                        </size>
                       </property>
                       <property name="font">
@@ -617,7 +620,7 @@
                       <property name="sizeHint" stdset="0">
                        <size>
                         <width>20</width>
-                        <height>200</height>
+                        <height>125</height>
                        </size>
                       </property>
                      </spacer>
@@ -633,7 +636,7 @@
                       <property name="minimumSize">
                        <size>
                         <width>170</width>
-                        <height>120</height>
+                        <height>100</height>
                        </size>
                       </property>
                       <property name="font">
@@ -677,7 +680,7 @@
                       <property name="sizeHint" stdset="0">
                        <size>
                         <width>20</width>
-                        <height>120</height>
+                        <height>125</height>
                        </size>
                       </property>
                      </spacer>
