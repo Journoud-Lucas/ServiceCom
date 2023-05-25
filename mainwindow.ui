@@ -33,7 +33,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="pageMainWindow">
        <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -121,7 +121,6 @@
                  <font>
                   <family>Arial</family>
                   <pointsize>32</pointsize>
-                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -142,7 +141,6 @@
                  <font>
                   <family>Arial</family>
                   <pointsize>32</pointsize>
-                  <weight>75</weight>
                   <bold>true</bold>
                  </font>
                 </property>
@@ -246,7 +244,6 @@
              <font>
               <family>Arial</family>
               <pointsize>100</pointsize>
-              <weight>75</weight>
               <bold>true</bold>
              </font>
             </property>

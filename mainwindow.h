@@ -95,6 +95,7 @@ private slots:
     //Other button
     void on_pushButtonStartService_clicked();
     void on_pushButtonGoToMainWindow_clicked();
+    void on_pushButtonSettings_clicked();
     //Index change
     void on_comboBoxServicesAdmin_currentIndexChanged(int nIndex_in);
     void on_comboBoxServices_currentIndexChanged(int nIndex_in);
@@ -104,7 +105,6 @@ private slots:
     void ElapsedTime();
     //Other
     void ResizeRow();
-    void Settings();
 };
 
 #endif // MAINWINDOW_H

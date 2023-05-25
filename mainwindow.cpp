@@ -141,67 +141,6 @@ void MainWindow::SettingsButtonConfiguration()
     ui->pushButtonSettings->setIconSize(QSize(75,75));
     ui->pushButtonSettings->setFlat(true);
     //Goes to the admin interface when you click on the button and enter the correct password
-    QObject::connect(ui->pushButtonSettings, &QPushButton::clicked, this, &MainWindow::Settings);
-}
-
-/*!
- * \brief MainWindow::Settings Call function when you press the settings button to go to the admin interface if the right password is entered
- */
-void MainWindow::Settings()
-{
-    //Hash and salt (randomly generated salt) of the password
-    QRandomGenerator generator;
-    quint32 saltValue = generator.generate();
-    QByteArray hashedPassword = HashingAndSalling(GetPasswordOfArhm(), saltValue);
-    //Configure the window to enter the password
-    QDialog *pDialogPassword = new QDialog(this);
-    QVBoxLayout *pMainLayoutDialogPassword = new QVBoxLayout(pDialogPassword);
-    QLabel *pLabelPassword = new QLabel("Entrez le mot de passe :");
-    QLineEdit *pLineEditPassword = new QLineEdit;
-    pLineEditPassword->setEchoMode(QLineEdit::Password);
-    QPushButton *pOkButtonPassword = new QPushButton("OK");
-    QPushButton *pCancelButtonPassword = new QPushButton("Annuler");
-    //Button to display the password or not
-    QAction *pShowPassword = new QAction(this);
-    pShowPassword->setIcon(QIcon(":/images/close eye.png"));
-    connect(pShowPassword, &QAction::triggered, this, [&, pLineEditPassword, pShowPassword]()
-            {
-                if (pLineEditPassword->echoMode() == QLineEdit::Password) {
-                    pLineEditPassword->setEchoMode(QLineEdit::Normal);
-                    pShowPassword->setIcon(QIcon(":/images/open eye.png"));
-                }
-                else {
-                    pLineEditPassword->setEchoMode(QLineEdit::Password);
-                    pShowPassword->setIcon(QIcon(":/images/close eye.png"));
-                }
-            });
-    pLineEditPassword->addAction(pShowPassword, QLineEdit::TrailingPosition);
-    pMainLayoutDialogPassword->addWidget(pLabelPassword);
-    pMainLayoutDialogPassword->addWidget(pLineEditPassword);
-    pMainLayoutDialogPassword->addWidget(pOkButtonPassword);
-    pMainLayoutDialogPassword->addWidget(pCancelButtonPassword);
-    pDialogPassword->setLayout(pMainLayoutDialogPassword);
-    pDialogPassword->connect(pCancelButtonPassword, &QPushButton::clicked, this, [&, pDialogPassword]() //When you click on the cancel button
-    {
-        pDialogPassword->reject();
-    });
-    pDialogPassword->connect(pOkButtonPassword, &QPushButton::clicked, this, [&, pLineEditPassword,saltValue,hashedPassword,pDialogPassword]() //When you click on the ok button
-    {
-        //Hash of the entered text
-        QString sEntryText = pLineEditPassword->text().toLower();
-        QByteArray hashedEnterText = HashingAndSalling(sEntryText, saltValue);
-
-        if(hashedEnterText==hashedPassword) //If the password entered is correct
-        {
-            pDialogPassword->accept();
-            ui->stackedWidget->setCurrentIndex(1);
-        }
-        else //If the password entered is incorrect
-        {
-            QMessageBox::critical(this, tr("Erreur"), tr("Le mot de passe entré est incorect.\nVeuillez réessayez"));
-        }
-    });
-    pDialogPassword->exec();
 }
 
 /*!
@@ -234,7 +173,7 @@ void MainWindow::InitialConfiguration()
     SettingsButtonConfiguration();
     TableView();
     #if _WIN32 //Window 32 and 64bit
-        m_sDatabasePath="D://journoudl.SNIRW//ServiceCom//ServiceCOM-2023//BDD_ServiceCom.db";
+        m_sDatabasePath="D://arhm//ServiceCOM-2023//BDD_ServiceCom.db";
     #elif __ANDROID__ //Android device
         m_sDatabasePath="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
     #endif
@@ -1142,3 +1081,64 @@ QString MainWindow::GetPasswordOfArhm()
     //Return the password allowing to go on the admin interface
     return sPassword_out;
 }
+
+/*!
+ * \brief MainWindow::on_pushButtonSettings_clicked Call function when you press the settings button to go to the admin interface if the right password is entered
+ */
+void MainWindow::on_pushButtonSettings_clicked()
+{
+    //Hash and salt (randomly generated salt) of the password
+    QRandomGenerator generator;
+    quint32 saltValue = generator.generate();
+    QByteArray hashedPassword = HashingAndSalling(GetPasswordOfArhm(), saltValue);
+    //Configure the window to enter the password
+    QDialog *pDialogPassword = new QDialog(this);
+    QVBoxLayout *pMainLayoutDialogPassword = new QVBoxLayout(pDialogPassword);
+    QLabel *pLabelPassword = new QLabel("Entrez le mot de passe :");
+    QLineEdit *pLineEditPassword = new QLineEdit;
+    pLineEditPassword->setEchoMode(QLineEdit::Password);
+    QPushButton *pOkButtonPassword = new QPushButton("OK");
+    QPushButton *pCancelButtonPassword = new QPushButton("Annuler");
+    //Button to display the password or not
+    QAction *pShowPassword = new QAction(this);
+    pShowPassword->setIcon(QIcon(":/images/close eye.png"));
+    connect(pShowPassword, &QAction::triggered, this, [&, pLineEditPassword, pShowPassword]()
+            {
+                if (pLineEditPassword->echoMode() == QLineEdit::Password) {
+                    pLineEditPassword->setEchoMode(QLineEdit::Normal);
+                    pShowPassword->setIcon(QIcon(":/images/open eye.png"));
+                }
+                else {
+                    pLineEditPassword->setEchoMode(QLineEdit::Password);
+                    pShowPassword->setIcon(QIcon(":/images/close eye.png"));
+                }
+            });
+    pLineEditPassword->addAction(pShowPassword, QLineEdit::TrailingPosition);
+    pMainLayoutDialogPassword->addWidget(pLabelPassword);
+    pMainLayoutDialogPassword->addWidget(pLineEditPassword);
+    pMainLayoutDialogPassword->addWidget(pOkButtonPassword);
+    pMainLayoutDialogPassword->addWidget(pCancelButtonPassword);
+    pDialogPassword->setLayout(pMainLayoutDialogPassword);
+    pDialogPassword->connect(pCancelButtonPassword, &QPushButton::clicked, this, [&, pDialogPassword]() //When you click on the cancel button
+    {
+        pDialogPassword->reject();
+    });
+    pDialogPassword->connect(pOkButtonPassword, &QPushButton::clicked, this, [&, pLineEditPassword,saltValue,hashedPassword,pDialogPassword]() //When you click on the ok button
+    {
+        //Hash of the entered text
+        QString sEntryText = pLineEditPassword->text().toLower();
+        QByteArray hashedEnterText = HashingAndSalling(sEntryText, saltValue);
+
+        if(hashedEnterText==hashedPassword) //If the password entered is correct
+        {
+            pDialogPassword->accept();
+            ui->stackedWidget->setCurrentIndex(1);
+        }
+        else //If the password entered is incorrect
+        {
+            QMessageBox::critical(this, tr("Erreur"), tr("Le mot de passe entré est incorect.\nVeuillez réessayez"));
+        }
+    });
+    pDialogPassword->exec();
+}
+
