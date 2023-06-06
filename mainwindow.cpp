@@ -173,9 +173,9 @@ void MainWindow::InitialConfiguration()
     SettingsButtonConfiguration();
     TableView();
     #if _WIN32 //Window 32 and 64bit
-        m_sDatabasePath="D://arhm//ServiceCOM-2023//BDD_ServiceCom.db";
+        m_sDatabasePath="C://Users//journoudl//Desktop//LeProjet//ServiceCOM-2023//BDD_ServiceCom.db";
     #elif __ANDROID__ //Android device
-        m_sDatabasePath="/storage/emulated/0/Arhm/BDD_ServiceCom.db";
+        m_sDatabasePath="/storage/emulated/0/ServiceCom/BDD_ServiceCom.db";
     #endif
     UpdateServices(GetLastSelectedIndexService());
     m_pEngine = new QTextToSpeech;
