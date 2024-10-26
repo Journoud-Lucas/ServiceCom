@@ -28,7 +28,7 @@ Le but de l'application est d'encadrer des personnes atteintes de handicap afin 
 Le programme utilise Qt 5.12.3 et QT creator 4.9.1.
 Pour compiler pour tablette on utilise Android for armeabi-v7a (Clang Qt 5.12.2 for Android ARMv7.
 
-Malgré le fait que le programme soit fait pour tablette android il est tout a fait compilable pour PC (sous réserver de changer le chemin de la base de donnée dans le code).
+Malgré le fait que le programme soit fait pour tablette android il est tout a fait compilable pour PC (sous réserve de changer le chemin de la base de donnée dans le code).
 
 # 📝 Notice utilisateur
 https://rentry.org/arhm
